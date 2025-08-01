@@ -1,0 +1,57 @@
+# config.yaml
+api:
+  baseUrl: https://api.example.com
+  version: v1
+  auth:
+    type: Bearer
+endpoints:
+  create-user:
+    method: POST
+    mode: default
+    path: /users 
+    parameters:
+      name:
+        type: string
+        mode: seed
+        in: body
+        description: The name of the user.
+        required: true
+        validation:
+          minLength: 3
+          maxLength: 50
+      email:
+        type: string
+        mode: env
+        in: body
+        description: The email of the user.
+        required: true
+    defaults:
+      name: "John Doe"
+      email: MY_EMAIL
+
+  list-users:
+    method: GET
+    path: /users
+    parameters:
+      limit:
+        type: int
+        description: The maximum number of users to return.
+        in: query
+        required: false
+      offset:
+        type: int
+        description: The number of users to skip.
+        in: query
+        required: false
+
+  get-user-by-id:
+    method: GET
+    path: /users/{id}
+    parameters:
+      id:
+        type: int
+        description: The ID of the user.
+        in: path
+        required: true
+    defaults:
+      id: 1

@@ -1,0 +1,8 @@
+Check how to read yaml file
+Figure out yaml file structure + config
+    - think about how to handle auth
+    - mode: default, seed, env, ai(future)
+Brainstorm commands structure
+    koi create-user(wildcard)
+    koi list
+    koi help
