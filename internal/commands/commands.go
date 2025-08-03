@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -10,13 +11,14 @@ import (
 )
 
 type State struct {
-	config config.Config
+	cfg config.Config
 }
 
 type Command struct {
-	name    string
-	args    []string
-	handler commandHandler
+	name     string
+	args     []string
+	handler  commandHandler
+	endpoint config.Endpoint
 }
 
 type commandHandler func(s *State, cmd Command) error
@@ -40,22 +42,37 @@ func Init() {
 		os.Exit(1)
 	}
 
+	cfg, err := state.readConfig()
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+
+	state.cfg = cfg
 	cName := os.Args[1]
 	args := os.Args[2:]
 
 	handler, ok := commands.handlers[cName]
+	var endpoint config.Endpoint
 	if !ok {
-		fmt.Printf("Command name '%s' not found\n", cName)
-		os.Exit(1)
+
+		ep, ok := cfg.Endpoints[cName]
+		if !ok {
+			fmt.Printf("no endpoints found for %s\n", cName)
+			os.Exit(1)
+		}
+
+		endpoint = ep
 	}
 
 	cmd := Command{
-		name:    cName,
-		args:    args,
-		handler: handler,
+		name:     cName,
+		args:     args,
+		handler:  handler,
+		endpoint: endpoint,
 	}
 
-	err := commands.run(state, cmd)
+	err = commands.run(state, cmd)
 	if err != nil {
 		fmt.Printf("Error while running the command: %s\n", err)
 		os.Exit(1)
@@ -64,26 +81,31 @@ func Init() {
 }
 
 func (c *commands) run(s *State, cmd Command) error {
-	handler, ok := c.handlers[cmd.name]
-	if !ok {
-		cfg, err := s.readConfig()
+	if cmd.handler != nil {
+		cmd.handler(s, cmd)
+		return nil
+	} else if cmd.endpoint.Path != "" {
+		result, err := api.Call(cmd.endpoint, s.cfg)
 		if err != nil {
-			return err
+			return fmt.Errorf("error while calling %s endpoint %s: %w", cmd.name, cmd.endpoint.Path, err)
 		}
 
-		ep, ok := cfg.Endpoints[cmd.name]
-		if !ok {
-			return fmt.Errorf("Endpoint %s not found", cmd.name)
+		var data interface{}
+		unmarshalErr := json.Unmarshal(result, &data)
+		if unmarshalErr == nil {
+			prettyJSON, marshalErr := json.MarshalIndent(data, "", "  ")
+			if marshalErr == nil {
+				fmt.Print(string(prettyJSON))
+			} else {
+				fmt.Printf("Warning: Failed to pretty print JSON, printing raw result.\n%s\n", string(result))
+			}
+		} else {
+			fmt.Printf("Result is not valid JSON, printing as plain text:\n%s\n", string(result))
 		}
-
-		result, err := api.Call(ep, cfg)
-		if err != nil {
-			return err
-		}
-
-		//TODO: Display the result beautifully in the terminal
+		return nil
 	}
-	return handler(s, cmd)
+
+	return fmt.Errorf("Command %s not found", cmd.name)
 }
 
 func (c *commands) register(name string, f commandHandler) {
@@ -93,12 +115,12 @@ func (c *commands) register(name string, f commandHandler) {
 func (s *State) readConfig() (cfg config.Config, err error) {
 	yamlFile, err := os.ReadFile("koi.config.yaml")
 	if err != nil {
-		return config.Config{}, fmt.Errorf("Error reading or missing koi.config.yaml file")
+		return config.Config{}, fmt.Errorf("error reading or missing koi.config.yaml file")
 	}
 	var config config.Config
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
-		return config, fmt.Errorf("Error unmarshalling config file")
+		return config, fmt.Errorf("error unmarshalling config file")
 	}
 
 	return config, nil

@@ -18,10 +18,10 @@ func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {
 		return Get(e, cfg)
 	case "POST":
 		return Post(e, cfg)
-	case "PATCH":
-		return Patch(e, cfg)
-	case "DELETE":
-		return Delete(e, cfg)
+	// case "PATCH":
+	// 	return Patch(e, cfg)
+	// case "DELETE":
+	// 	return Delete(e, cfg)
 	default:
 		return Result{}, fmt.Errorf("unsupported method: %s", e.Method)
 	}
