@@ -1,8 +1,18 @@
 Check how to read yaml file
+    - to test in prod once deployed
 Figure out yaml file structure + config
     - think about how to handle auth
     - mode: default, seed, env, ai(future)
+    - CORS
 Brainstorm commands structure
-    koi create-user(wildcard)
-    koi list
-    koi help
+    - if no arg prodived it will be the help command
+    - else its a endpoint call
+--------------
+- add other things to the api terminal output like status code, response, url etc..
+- Restructure commands so there is no command register, the empty one will be the help command
+- Check charm to improve the visual of the output.
+- Test different type of responses
+- Handle all endpoint method and specifications
+- Handle env mode
+- Handle seed mode
+

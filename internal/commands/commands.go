@@ -90,17 +90,21 @@ func (c *commands) run(s *State, cmd Command) error {
 			return fmt.Errorf("error while calling %s endpoint %s: %w", cmd.name, cmd.endpoint.Path, err)
 		}
 
+		body := result.Body
+
 		var data interface{}
-		unmarshalErr := json.Unmarshal(result, &data)
+		unmarshalErr := json.Unmarshal(body, &data)
 		if unmarshalErr == nil {
 			prettyJSON, marshalErr := json.MarshalIndent(data, "", "  ")
 			if marshalErr == nil {
-				fmt.Print(string(prettyJSON))
+				fmt.Printf("%s %s\n", result.Method, result.Url)
+				fmt.Printf("Status: %v\n", result.Status)
+				fmt.Printf("Body: %s\n", string(prettyJSON))
 			} else {
-				fmt.Printf("Warning: Failed to pretty print JSON, printing raw result.\n%s\n", string(result))
+				fmt.Printf("Warning: Failed to pretty print JSON, printing raw result.\n%s\n", string(body))
 			}
 		} else {
-			fmt.Printf("Result is not valid JSON, printing as plain text:\n%s\n", string(result))
+			fmt.Printf("Result is not valid JSON, printing as plain text:\n%s\n", string(body))
 		}
 		return nil
 	}

@@ -10,7 +10,12 @@ import (
 	"github.com/killuox/koi/internal/config"
 )
 
-type Result []byte
+type Result struct {
+	Status int
+	Body   []byte
+	Url    string
+	Method string
+}
 
 func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	switch e.Method {
@@ -47,8 +52,12 @@ func Get(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	if err != nil {
 		return Result{}, err
 	}
-
-	return body, nil
+	return Result{
+		Body:   body,
+		Url:    url,
+		Status: resp.StatusCode,
+		Method: e.Method,
+	}, nil
 }
 
 func Post(e config.Endpoint, cfg config.Config) (r Result, err error) {
@@ -81,7 +90,12 @@ func Post(e config.Endpoint, cfg config.Config) (r Result, err error) {
 		return Result{}, err
 	}
 
-	return body, nil
+	return Result{
+		Body:   body,
+		Url:    url,
+		Status: resp.StatusCode,
+		Method: e.Method,
+	}, nil
 }
 
 // func Patch(e config.Endpoint, cfg config.Config) (r Result, err error)  {}
