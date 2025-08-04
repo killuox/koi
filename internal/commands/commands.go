@@ -17,7 +17,6 @@ type State struct {
 type Command struct {
 	name     string
 	args     []string
-	handler  commandHandler
 	endpoint config.Endpoint
 }
 
@@ -34,9 +33,6 @@ func Init() {
 
 	state := &State{}
 
-	// register commands here
-	commands.register("help", handlerHelp)
-
 	if len(os.Args) < 2 {
 		fmt.Print("Not enough arguments provided.\n")
 		os.Exit(1)
@@ -52,24 +48,16 @@ func Init() {
 	cName := os.Args[1]
 	args := os.Args[2:]
 
-	handler, ok := commands.handlers[cName]
-	var endpoint config.Endpoint
+	ep, ok := cfg.Endpoints[cName]
 	if !ok {
-
-		ep, ok := cfg.Endpoints[cName]
-		if !ok {
-			fmt.Printf("no endpoints found for %s\n", cName)
-			os.Exit(1)
-		}
-
-		endpoint = ep
+		fmt.Printf("no endpoints found for %s\n", cName)
+		os.Exit(1)
 	}
 
 	cmd := Command{
 		name:     cName,
 		args:     args,
-		handler:  handler,
-		endpoint: endpoint,
+		endpoint: ep,
 	}
 
 	err = commands.run(state, cmd)
@@ -81,39 +69,28 @@ func Init() {
 }
 
 func (c *commands) run(s *State, cmd Command) error {
-	if cmd.handler != nil {
-		cmd.handler(s, cmd)
-		return nil
-	} else if cmd.endpoint.Path != "" {
-		result, err := api.Call(cmd.endpoint, s.cfg)
-		if err != nil {
-			return fmt.Errorf("error while calling %s endpoint %s: %w", cmd.name, cmd.endpoint.Path, err)
-		}
-
-		body := result.Body
-
-		var data interface{}
-		unmarshalErr := json.Unmarshal(body, &data)
-		if unmarshalErr == nil {
-			prettyJSON, marshalErr := json.MarshalIndent(data, "", "  ")
-			if marshalErr == nil {
-				fmt.Printf("%s %s\n", result.Method, result.Url)
-				fmt.Printf("Status: %v\n", result.Status)
-				fmt.Printf("Body: %s\n", string(prettyJSON))
-			} else {
-				fmt.Printf("Warning: Failed to pretty print JSON, printing raw result.\n%s\n", string(body))
-			}
-		} else {
-			fmt.Printf("Result is not valid JSON, printing as plain text:\n%s\n", string(body))
-		}
-		return nil
+	result, err := api.Call(cmd.endpoint, s.cfg)
+	if err != nil {
+		return fmt.Errorf("error while calling %s endpoint %s: %w", cmd.name, cmd.endpoint.Path, err)
 	}
 
-	return fmt.Errorf("Command %s not found", cmd.name)
-}
+	body := result.Body
 
-func (c *commands) register(name string, f commandHandler) {
-	c.handlers[name] = f
+	var data interface{}
+	unmarshalErr := json.Unmarshal(body, &data)
+	if unmarshalErr == nil {
+		prettyJSON, marshalErr := json.MarshalIndent(data, "", "  ")
+		if marshalErr == nil {
+			fmt.Printf("%s %s\n", result.Method, result.Url)
+			fmt.Printf("Status: %v\n", result.Status)
+			fmt.Printf("Body: %s\n", string(prettyJSON))
+		} else {
+			fmt.Printf("Warning: Failed to pretty print JSON, printing raw result.\n%s\n", string(body))
+		}
+	} else {
+		fmt.Printf("Result is not valid JSON, printing as plain text:\n%s\n", string(body))
+	}
+	return nil
 }
 
 func (s *State) readConfig() (cfg config.Config, err error) {
@@ -128,10 +105,4 @@ func (s *State) readConfig() (cfg config.Config, err error) {
 	}
 
 	return config, nil
-}
-
-// HANDLERS
-func handlerHelp(s *State, cmd Command) error {
-
-	return nil
 }

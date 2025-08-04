@@ -8,7 +8,6 @@ Brainstorm commands structure
     - if no arg prodived it will be the help command
     - else its a endpoint call
 --------------
-- add other things to the api terminal output like status code, response, url etc..
 - Restructure commands so there is no command register, the empty one will be the help command
 - Check charm to improve the visual of the output.
 - Test different type of responses
