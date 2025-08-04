@@ -17,7 +17,7 @@ type Auth struct {
 
 type Endpoint struct {
 	Method     string                 `yaml:"method"`
-	Mode       string                 `yaml:"mode"` // This field is optional and only present in some endpoints.
+	Mode       string                 `yaml:"mode"`
 	Path       string                 `yaml:"path"`
 	Parameters map[string]Parameter   `yaml:"parameters"`
 	Defaults   map[string]interface{} `yaml:"defaults"`
@@ -25,11 +25,11 @@ type Endpoint struct {
 
 type Parameter struct {
 	Type        string     `yaml:"type"`
-	Mode        string     `yaml:"mode"` // This field is optional and only present in some parameters.
+	Mode        string     `yaml:"mode"`
 	In          string     `yaml:"in"`
 	Description string     `yaml:"description"`
 	Required    bool       `yaml:"required"`
-	Validation  Validation `yaml:"validation"` // This field is optional.
+	Validation  Validation `yaml:"validation"`
 }
 
 type Validation struct {
