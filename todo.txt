@@ -8,7 +8,8 @@ Brainstorm commands structure
     - if no arg prodived it will be the help command
     - else its a endpoint call
 --------------
-- Check charm to improve the visual of the output.
+- Show loader
+- Try to improve performance
 - Test different type of responses
 - Handle all endpoint method and specifications
 - Handle env mode
