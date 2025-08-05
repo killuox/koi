@@ -6,15 +6,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/killuox/koi/internal/config"
 )
 
 type Result struct {
-	Status int
-	Body   []byte
-	Url    string
-	Method string
+	Status   int
+	Body     []byte
+	Url      string
+	Method   string
+	Duration time.Duration
 }
 
 func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {

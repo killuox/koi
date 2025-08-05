@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/killuox/koi/internal/api"
 	"github.com/killuox/koi/internal/config"
+	"github.com/killuox/koi/internal/output"
 	"gopkg.in/yaml.v2"
 )
 
@@ -69,7 +71,10 @@ func Init() {
 }
 
 func (c *commands) run(s *State, cmd Command) error {
+	startTime := time.Now()
 	result, err := api.Call(cmd.endpoint, s.cfg)
+	endTime := time.Now()
+	result.Duration = endTime.Sub(startTime)
 	if err != nil {
 		return fmt.Errorf("error while calling %s endpoint %s: %w", cmd.name, cmd.endpoint.Path, err)
 	}
@@ -81,9 +86,8 @@ func (c *commands) run(s *State, cmd Command) error {
 	if unmarshalErr == nil {
 		prettyJSON, marshalErr := json.MarshalIndent(data, "", "  ")
 		if marshalErr == nil {
-			fmt.Printf("%s %s\n", result.Method, result.Url)
-			fmt.Printf("Status: %v\n", result.Status)
-			fmt.Printf("Body: %s\n", string(prettyJSON))
+			result.Body = prettyJSON
+			output.ShowResponse(result)
 		} else {
 			fmt.Printf("Warning: Failed to pretty print JSON, printing raw result.\n%s\n", string(body))
 		}
