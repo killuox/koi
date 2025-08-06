@@ -8,13 +8,10 @@ Brainstorm commands structure
     - if no arg prodived it will be the help command
     - else its a endpoint call
 --------------
-- Show loader
-- Try to improve performance
-- Test different type of responses
 - Handle all endpoint method and specifications
 - Handle env mode
 - Handle seed mode
 - Add help output when empty args
 - Add tags setup to pass values
 - Add tags to display headers too
-
+- Check if endpoint required rule is necessary

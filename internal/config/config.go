@@ -1,5 +1,11 @@
 package config
 
+import (
+	"flag"
+	"fmt"
+	"os"
+)
+
 type Config struct {
 	API       API                 `yaml:"api"`
 	Endpoints map[string]Endpoint `yaml:"endpoints"`
@@ -16,11 +22,11 @@ type Auth struct {
 }
 
 type Endpoint struct {
-	Method     string                 `yaml:"method"`
-	Mode       string                 `yaml:"mode"`
-	Path       string                 `yaml:"path"`
-	Parameters map[string]Parameter   `yaml:"parameters"`
-	Defaults   map[string]interface{} `yaml:"defaults"`
+	Method     string               `yaml:"method"`
+	Mode       string               `yaml:"mode"`
+	Path       string               `yaml:"path"`
+	Parameters map[string]Parameter `yaml:"parameters"`
+	Defaults   map[string]any       `yaml:"defaults"`
 }
 
 type Parameter struct {
@@ -35,4 +41,18 @@ type Parameter struct {
 type Validation struct {
 	MinLength int `yaml:"minLength"`
 	MaxLength int `yaml:"maxLength"`
+}
+
+func (e Endpoint) GetValue() string {
+	cmd := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+	slug := cmd.String("slug", "", "The slug of the Pokemon to retrieve.")
+	cmd.Parse(os.Args[2:])
+
+	if *slug == "" {
+		fmt.Println("Error: --slug is required for get-pokemon command.")
+		cmd.Usage()
+		os.Exit(1)
+	}
+
+	return *slug
 }

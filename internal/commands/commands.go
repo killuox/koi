@@ -28,8 +28,7 @@ type commands struct {
 }
 
 func Init() {
-	commands := commands{}
-
+	commands := &commands{}
 	state := &State{}
 
 	if len(os.Args) < 2 {
@@ -119,10 +118,7 @@ func (c *commands) processAPIResult(
 		}
 	} else {
 		// Not valid JSON, print as plain text
-		fmt.Printf(
-			"Result is not valid JSON, printing as plain text:\n%s\n",
-			string(result.Body),
-		)
+		output.ShowResponse(result)
 	}
 }
 

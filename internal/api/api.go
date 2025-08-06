@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/killuox/koi/internal/config"
@@ -34,15 +35,23 @@ func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	}
 }
 
-// Utilies
-func getUrl(e config.Endpoint, cfg config.Config) string {
-	return cfg.API.BaseURL + e.Path
+// Utilities
+func configureUrl(e config.Endpoint, cfg config.Config) string {
+	path := e.Path
+	// Check if we need to replace a dynamic path parameters
+	for k, p := range e.Parameters {
+		if p.In == "path" {
+			// Replace in the url if its there
+			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), e.GetValue())
+		}
+	}
+	return cfg.API.BaseURL + path
 }
 
 // Method handlers
 func Get(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	//TODO: handle query, path params
-	url := getUrl(e, cfg)
+	url := configureUrl(e, cfg)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -63,8 +72,8 @@ func Get(e config.Endpoint, cfg config.Config) (r Result, err error) {
 }
 
 func Post(e config.Endpoint, cfg config.Config) (r Result, err error) {
-	url := getUrl(e, cfg)
-
+	url := configureUrl(e, cfg)
+	fmt.Print(url)
 	payload := e.Parameters
 	// TODO: handle parameters, get defaults value for now
 	// payload := map[string]string{

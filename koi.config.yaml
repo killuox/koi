@@ -8,6 +8,17 @@ endpoints:
   get-pokemons:
     method: GET
     path: /pokemon
+  get-pokemon:
+    method: GET
+    path: /pokemon/{slug}
+    parameters:
+      slug:
+        type: string
+        description: The slug of the pokemon
+        in: path
+    defaults:
+      slug: pikachu
+
 
   # create-user:
   #   method: POST
@@ -19,7 +30,6 @@ endpoints:
   #       mode: seed
   #       in: body
   #       description: The name of the user.
-  #       required: true
   #       validation:
   #         minLength: 3
   #         maxLength: 50
@@ -28,7 +38,6 @@ endpoints:
   #       mode: env
   #       in: body
   #       description: The email of the user.
-  #       required: true
   #   defaults:
   #     name: "John Doe"
   #     email: MY_EMAIL
