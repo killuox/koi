@@ -41,8 +41,8 @@ func configureUrl(e config.Endpoint, cfg config.Config) string {
 	// Check if we need to replace a dynamic path parameters
 	for k, p := range e.Parameters {
 		if p.In == "path" {
-			// Replace in the url if its there
-			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), e.GetValue())
+			// Replace the placeholder by checking the matched parameter
+			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", p.GetValue(cfg)))
 		}
 	}
 	return cfg.API.BaseURL + path

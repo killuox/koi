@@ -1,11 +1,5 @@
 package config
 
-import (
-	"flag"
-	"fmt"
-	"os"
-)
-
 type Config struct {
 	API       API                 `yaml:"api"`
 	Endpoints map[string]Endpoint `yaml:"endpoints"`
@@ -22,6 +16,7 @@ type Auth struct {
 }
 
 type Endpoint struct {
+	Type       string               `yaml:"type"`
 	Method     string               `yaml:"method"`
 	Mode       string               `yaml:"mode"`
 	Path       string               `yaml:"path"`
@@ -30,7 +25,6 @@ type Endpoint struct {
 }
 
 type Parameter struct {
-	Type        string     `yaml:"type"`
 	Mode        string     `yaml:"mode"`
 	In          string     `yaml:"in"`
 	Description string     `yaml:"description"`
@@ -43,16 +37,51 @@ type Validation struct {
 	MaxLength int `yaml:"maxLength"`
 }
 
-func (e Endpoint) GetValue() string {
-	cmd := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
-	slug := cmd.String("slug", "", "The slug of the Pokemon to retrieve.")
-	cmd.Parse(os.Args[2:])
-
-	if *slug == "" {
-		fmt.Println("Error: --slug is required for get-pokemon command.")
-		cmd.Usage()
-		os.Exit(1)
-	}
-
-	return *slug
+func (p Parameter) GetValue(cfg Config) string {
+	// Check if we have a flag first
+	// else use the default
+	// else do nothing or throw error?
+	return ""
 }
+
+// type ValueGetter struct {
+// 	Key  string
+// 	Type string
+// }
+
+// func (v ValueGetter) GetValue() interface{} {
+// 	cmd := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+// 	var value interface{}
+// 	switch v.Type {
+// 	case "string":
+// 		value = v.getStringValue(cmd)
+// 	case "bool":
+// 		value = v.getBoolValue(cmd)
+// 	case "int":
+// 		value = v.getIntValue(cmd)
+// 	default:
+// 		value = nil
+// 	}
+
+// 	cmd.Parse(os.Args[2:])
+
+// 	if value == nil {
+// 		fmt.Println("Error: --slug is required for get-pokemon command.")
+// 		cmd.Usage()
+// 		os.Exit(1)
+// 	}
+
+// 	return value
+// }
+
+// func (v ValueGetter) getStringValue(cmd *flag.FlagSet) string {
+// 	return *cmd.String(v.Key, "", "")
+// }
+
+// func (v ValueGetter) getBoolValue(cmd *flag.FlagSet) bool {
+// 	return *cmd.Bool(v.Key, false, "")
+// }
+
+// func (v ValueGetter) getIntValue(cmd *flag.FlagSet) int {
+// 	return *cmd.Int(v.Key, 0, "")
+// }
