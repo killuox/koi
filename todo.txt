@@ -9,9 +9,15 @@ Brainstorm commands structure
     - else its a endpoint call
 --------------
 - Handle all endpoint method and specifications
-- Handle env mode
+    - path
+    - query
+    - DELETE
+    - POST
+    - PATCH
+    - env
 - Handle seed mode
 - Add help output when empty args
 - Add tags setup to pass values
 - Add tags to display headers too
 - Check if endpoint required rule is necessary
+- Fix loader still showing in the terminal after

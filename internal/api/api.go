@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -42,9 +43,15 @@ func configureUrl(e config.Endpoint, cfg config.Config) string {
 	for k, p := range e.Parameters {
 		if p.In == "path" {
 			// Replace the placeholder by checking the matched parameter
-			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", p.GetValue(cfg)))
+			val, err := p.GetValue(k, e)
+			if err != nil {
+				fmt.Print(err)
+				os.Exit(1)
+			}
+			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", val))
 		}
 	}
+	//TODO handle p.In query
 	return cfg.API.BaseURL + path
 }
 

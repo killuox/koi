@@ -68,36 +68,26 @@ func Init() {
 func (c *commands) runWithLoader(
 	f func() (api.Result, error),
 ) (api.Result, error) {
-	done := make(chan struct{})
 	var loaderProgram *tea.Program
 
-	go func() {
-		select {
-		case <-done:
-			// Loader should exit gracefully
-			return
-		case <-time.After(500 * time.Millisecond):
-			// Initialize and run the loader if the operation takes too long
-			loaderProgram = tea.NewProgram(output.InitLoader())
-			if _, err := loaderProgram.Run(); err != nil {
-				log.Printf("Error running loader: %v", err)
-			}
+	// Schedule loader start after 500ms
+	timer := time.AfterFunc(001*time.Millisecond, func() {
+		loaderProgram = tea.NewProgram(output.InitLoader())
+		if _, err := loaderProgram.Run(); err != nil {
+			log.Printf("Error running loader: %v", err)
 		}
-	}()
+	})
 
-	// Execute the main function
 	result, err := f()
 
-	// Quit the loader if it was started
-	if loaderProgram != nil {
-		loaderProgram.Quit()
+	// Stop the timer if loader hasn't started yet
+	if !timer.Stop() && loaderProgram != nil {
+		loaderProgram.Send(tea.QuitMsg{})
 	}
-	close(done) // Signal the goroutine to stop
 
 	return result, err
 }
 
-// processAPIResult handles the API call result, including JSON formatting and output.
 func (c *commands) processAPIResult(
 	result api.Result,
 ) {

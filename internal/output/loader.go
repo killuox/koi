@@ -59,11 +59,3 @@ func (l loader) View() string {
 	}
 	return str
 }
-
-// func main() {
-// 	p := tea.NewProgram(InitLoader())
-// 	if _, err := p.Run(); err != nil {
-// 		fmt.Println(err)
-// 		os.Exit(1)
-// 	}
-// }

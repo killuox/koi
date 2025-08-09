@@ -1,5 +1,11 @@
 package config
 
+import (
+	"flag"
+	"fmt"
+	"os"
+)
+
 type Config struct {
 	API       API                 `yaml:"api"`
 	Endpoints map[string]Endpoint `yaml:"endpoints"`
@@ -25,6 +31,7 @@ type Endpoint struct {
 }
 
 type Parameter struct {
+	Type        string     `yaml:"type"`
 	Mode        string     `yaml:"mode"`
 	In          string     `yaml:"in"`
 	Description string     `yaml:"description"`
@@ -37,51 +44,53 @@ type Validation struct {
 	MaxLength int `yaml:"maxLength"`
 }
 
-func (p Parameter) GetValue(cfg Config) string {
-	// Check if we have a flag first
-	// else use the default
-	// else do nothing or throw error?
-	return ""
+func (p Parameter) GetValue(key string, e Endpoint) (any, error) {
+	// Check for flag value
+	flagVal := p.GetFlagValue(key)
+	if flagVal != "" {
+		return flagVal, nil
+	}
+	// Get the default value
+	defaultVal, ok := e.Defaults[key]
+	if ok {
+		return defaultVal, nil
+	}
+	return nil, fmt.Errorf("no value found for parameter: %s", key)
 }
 
-// type ValueGetter struct {
-// 	Key  string
-// 	Type string
-// }
+func (p Parameter) GetFlagValue(key string) any {
+	cmd := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+	var value interface{}
+	switch p.Type {
+	case "string":
+		value = p.getStringValue(key, cmd)
+	case "bool":
+		value = p.getBoolValue(key, cmd)
+	case "int":
+		value = p.getIntValue(key, cmd)
+	default:
+		value = nil
+	}
 
-// func (v ValueGetter) GetValue() interface{} {
-// 	cmd := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
-// 	var value interface{}
-// 	switch v.Type {
-// 	case "string":
-// 		value = v.getStringValue(cmd)
-// 	case "bool":
-// 		value = v.getBoolValue(cmd)
-// 	case "int":
-// 		value = v.getIntValue(cmd)
-// 	default:
-// 		value = nil
-// 	}
+	cmd.Parse(os.Args[2:])
 
-// 	cmd.Parse(os.Args[2:])
+	if value == nil {
+		fmt.Println("Error: --slug is required for get-pokemon command.")
+		cmd.Usage()
+		os.Exit(1)
+	}
 
-// 	if value == nil {
-// 		fmt.Println("Error: --slug is required for get-pokemon command.")
-// 		cmd.Usage()
-// 		os.Exit(1)
-// 	}
+	return value
+}
 
-// 	return value
-// }
+func (p Parameter) getStringValue(key string, cmd *flag.FlagSet) string {
+	return *cmd.String(key, "", "")
+}
 
-// func (v ValueGetter) getStringValue(cmd *flag.FlagSet) string {
-// 	return *cmd.String(v.Key, "", "")
-// }
+func (p Parameter) getBoolValue(key string, cmd *flag.FlagSet) bool {
+	return *cmd.Bool(key, false, "")
+}
 
-// func (v ValueGetter) getBoolValue(cmd *flag.FlagSet) bool {
-// 	return *cmd.Bool(v.Key, false, "")
-// }
-
-// func (v ValueGetter) getIntValue(cmd *flag.FlagSet) int {
-// 	return *cmd.Int(v.Key, 0, "")
-// }
+func (p Parameter) getIntValue(key string, cmd *flag.FlagSet) int {
+	return *cmd.Int(key, 0, "")
+}
