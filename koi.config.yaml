@@ -1,23 +1,34 @@
 # config.yaml
 api:
-  baseUrl: https://pokeapi.co/api/v2
+  baseUrl: https://jsonplaceholder.typicode.com
   version: v1
   auth:
     type: Bearer
 endpoints:
-  get-pokemons:
-    method: GET
-    path: /pokemon
-  get-pokemon:
-    method: GET
-    path: /pokemon/{slug}
+  delete-post:
+    method: DELETE
+    path: /posts/{id}
     parameters:
-      slug:
-        type: string
-        description: The slug of the pokemon
+      id:
+        type: int
+        description: The ID of the post to delete.
         in: path
+        required: true
     defaults:
-      slug: pikachu
+      id: 1
+  # get-pokemons:
+  #   method: GET
+  #   path: /pokemon
+  # get-pokemon:
+  #   method: GET
+  #   path: /pokemon/{slug}
+  #   parameters:
+  #     slug:
+  #       type: string
+  #       description: The slug of the pokemon
+  #       in: path
+  #   defaults:
+  #     slug: pikachu
 
 
   # create-user:

@@ -8,14 +8,15 @@ Brainstorm commands structure
     - if no arg prodived it will be the help command
     - else its a endpoint call
 --------------
+- Improve response view with loader
 - Handle all endpoint method and specifications
-    - path
-    - query
+    - path X
+    - query X
     - DELETE
     - POST
     - PATCH
-    - env
-- Handle seed mode
+= EMV mode
+- Seed mode
 - Add help output when empty args
 - Add tags setup to pass values
 - Add tags to display headers too

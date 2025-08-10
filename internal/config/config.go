@@ -46,8 +46,8 @@ type Validation struct {
 
 func (p Parameter) GetValue(key string, e Endpoint) (any, error) {
 	// Check for flag value
-	flagVal := p.GetFlagValue(key)
-	if flagVal != "" {
+	flagVal, err := p.GetFlagValue(key)
+	if err == nil {
 		return flagVal, nil
 	}
 	// Get the default value
@@ -58,8 +58,14 @@ func (p Parameter) GetValue(key string, e Endpoint) (any, error) {
 	return nil, fmt.Errorf("no value found for parameter: %s", key)
 }
 
-func (p Parameter) GetFlagValue(key string) any {
-	cmd := flag.NewFlagSet(os.Args[1], flag.ExitOnError)
+func (p Parameter) GetFlagValue(key string) (any, error) {
+	epName := os.Args[1]
+	cmd := flag.NewFlagSet(epName, flag.ExitOnError)
+	keyFLag := cmd.Lookup(key)
+	if keyFLag == nil {
+		return nil, fmt.Errorf("no flag value found for %s", key)
+	}
+
 	var value interface{}
 	switch p.Type {
 	case "string":
@@ -74,13 +80,23 @@ func (p Parameter) GetFlagValue(key string) any {
 
 	cmd.Parse(os.Args[2:])
 
-	if value == nil {
-		fmt.Println("Error: --slug is required for get-pokemon command.")
-		cmd.Usage()
-		os.Exit(1)
+	switch v := value.(type) {
+	case string:
+		if v != "" {
+			return v, nil
+		}
+	case bool:
+		// Accept both true and false
+		return v, nil
+	case int:
+		if v != 0 {
+			return v, nil
+		}
+	default:
+		return nil, fmt.Errorf("unsupported flag type: %T", v)
 	}
 
-	return value
+	return nil, fmt.Errorf("no flag value found for %s", key)
 }
 
 func (p Parameter) getStringValue(key string, cmd *flag.FlagSet) string {

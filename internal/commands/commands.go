@@ -82,7 +82,7 @@ func (c *commands) runWithLoader(
 
 	// Stop the timer if loader hasn't started yet
 	if !timer.Stop() && loaderProgram != nil {
-		loaderProgram.Send(tea.QuitMsg{})
+		loaderProgram.Send(tea.SuspendMsg{})
 	}
 
 	return result, err

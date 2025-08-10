@@ -25,12 +25,12 @@ func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	switch e.Method {
 	case "GET":
 		return Get(e, cfg)
-	case "POST":
-		return Post(e, cfg)
+	// case "POST":
+	// 	return Post(e, cfg)
 	// case "PATCH":
 	// 	return Patch(e, cfg)
-	// case "DELETE":
-	// 	return Delete(e, cfg)
+	case "DELETE":
+		return Delete(e, cfg)
 	default:
 		return Result{}, fmt.Errorf("unsupported method: %s", e.Method)
 	}
@@ -39,25 +39,30 @@ func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {
 // Utilities
 func configureUrl(e config.Endpoint, cfg config.Config) string {
 	path := e.Path
+	var queryCount int
 	// Check if we need to replace a dynamic path parameters
 	for k, p := range e.Parameters {
-		if p.In == "path" {
-			// Replace the placeholder by checking the matched parameter
-			val, err := p.GetValue(k, e)
-			if err != nil {
-				fmt.Print(err)
-				os.Exit(1)
-			}
+		val, err := p.GetValue(k, e)
+		if err != nil {
+			fmt.Print(err)
+			os.Exit(1)
+		}
+		switch p.In {
+		case "path":
 			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", val))
+		case "query":
+			sep := "?"
+			if queryCount > 0 {
+				sep = "&"
+			}
+			path += fmt.Sprintf("%s%s=%s", sep, k, val)
 		}
 	}
-	//TODO handle p.In query
 	return cfg.API.BaseURL + path
 }
 
 // Method handlers
 func Get(e config.Endpoint, cfg config.Config) (r Result, err error) {
-	//TODO: handle query, path params
 	url := configureUrl(e, cfg)
 
 	resp, err := http.Get(url)
@@ -117,4 +122,28 @@ func Post(e config.Endpoint, cfg config.Config) (r Result, err error) {
 }
 
 // func Patch(e config.Endpoint, cfg config.Config) (r Result, err error)  {}
-// func Delete(e config.Endpoint, cfg config.Config) (r Result, err error) {}
+func Delete(e config.Endpoint, cfg config.Config) (r Result, err error) {
+	url := configureUrl(e, cfg)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return Result{}, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return Result{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Result{}, err
+	}
+	return Result{
+		Body:   body,
+		Url:    url,
+		Status: resp.StatusCode,
+		Method: e.Method,
+	}, nil
+}
