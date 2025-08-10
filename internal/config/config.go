@@ -47,6 +47,10 @@ type Validation struct {
 func (p Parameter) GetValue(key string, e Endpoint) (any, error) {
 	// Check for flag value
 	flagVal, err := p.GetFlagValue(key)
+	if err != nil {
+		fmt.Print(err)
+		os.Exit(1)
+	}
 	if err == nil {
 		return flagVal, nil
 	}
@@ -59,54 +63,43 @@ func (p Parameter) GetValue(key string, e Endpoint) (any, error) {
 }
 
 func (p Parameter) GetFlagValue(key string) (any, error) {
+	if len(os.Args) < 2 {
+		return nil, fmt.Errorf("no command provided")
+	}
+
 	epName := os.Args[1]
 	cmd := flag.NewFlagSet(epName, flag.ExitOnError)
-	keyFLag := cmd.Lookup(key)
-	if keyFLag == nil {
-		return nil, fmt.Errorf("no flag value found for %s", key)
-	}
 
 	var value interface{}
 	switch p.Type {
 	case "string":
-		value = p.getStringValue(key, cmd)
+		value = cmd.String(key, "", "string flag")
 	case "bool":
-		value = p.getBoolValue(key, cmd)
+		value = cmd.Bool(key, false, "bool flag")
 	case "int":
-		value = p.getIntValue(key, cmd)
+		value = cmd.Int(key, 0, "int flag")
 	default:
-		value = nil
+		return nil, fmt.Errorf("unsupported flag type: %s", p.Type)
 	}
 
-	cmd.Parse(os.Args[2:])
+	// Parse the flags from the remaining arguments
+	if err := cmd.Parse(os.Args[2:]); err != nil {
+		return nil, err
+	}
 
+	// Return the dereferenced value
 	switch v := value.(type) {
-	case string:
-		if v != "" {
-			return v, nil
+	case *string:
+		if *v != "" {
+			return *v, nil
 		}
-	case bool:
-		// Accept both true and false
-		return v, nil
-	case int:
-		if v != 0 {
-			return v, nil
+	case *bool:
+		return *v, nil
+	case *int:
+		if *v != 0 {
+			return *v, nil
 		}
-	default:
-		return nil, fmt.Errorf("unsupported flag type: %T", v)
 	}
 
 	return nil, fmt.Errorf("no flag value found for %s", key)
-}
-
-func (p Parameter) getStringValue(key string, cmd *flag.FlagSet) string {
-	return *cmd.String(key, "", "")
-}
-
-func (p Parameter) getBoolValue(key string, cmd *flag.FlagSet) bool {
-	return *cmd.Bool(key, false, "")
-}
-
-func (p Parameter) getIntValue(key string, cmd *flag.FlagSet) int {
-	return *cmd.Int(key, 0, "")
 }
