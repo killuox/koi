@@ -71,18 +71,19 @@ func (c *commands) runWithLoader(
 	var loaderProgram *tea.Program
 
 	// Schedule loader start after 500ms
-	timer := time.AfterFunc(001*time.Millisecond, func() {
+	timer := time.AfterFunc(500*time.Millisecond, func() {
 		loaderProgram = tea.NewProgram(output.InitLoader())
 		if _, err := loaderProgram.Run(); err != nil {
 			log.Printf("Error running loader: %v", err)
 		}
 	})
+	defer timer.Stop()
 
 	result, err := f()
 
 	// Stop the timer if loader hasn't started yet
 	if !timer.Stop() && loaderProgram != nil {
-		loaderProgram.Send(tea.SuspendMsg{})
+		loaderProgram.Send(tea.QuitMsg{})
 	}
 
 	return result, err

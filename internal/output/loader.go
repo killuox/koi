@@ -18,8 +18,8 @@ type loader struct {
 
 func InitLoader() loader {
 	s := spinner.New()
-	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Spinner = spinner.Points
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("208"))
 	return loader{spinner: s}
 }
 
