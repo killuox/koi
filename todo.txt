@@ -12,8 +12,9 @@ Brainstorm commands structure
     - path X
     - query X
     - DELETE X
-    - POST
+    - POST <-
     - PATCH
+    - PUT
 = EMV mode
 - Seed mode
 - Add help output when empty args

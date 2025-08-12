@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/killuox/koi/internal/config"
+	"github.com/killuox/koi/internal/shared"
 )
 
 type Result struct {
@@ -21,30 +21,32 @@ type Result struct {
 	Duration time.Duration
 }
 
-func Call(e config.Endpoint, cfg config.Config) (r Result, err error) {
+func Call(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	switch e.Method {
 	case "GET":
-		return Get(e, cfg)
-	// case "POST":
-	// 	return Post(e, cfg)
+		return Get(e, s)
+	case "POST":
+		return Post(e, s)
 	// case "PATCH":
-	// 	return Patch(e, cfg)
+	// 	return Patch(e, s)
+	// case "PUT"
+	// return Put(e, s)
 	case "DELETE":
-		return Delete(e, cfg)
+		return Delete(e, s)
 	default:
 		return Result{}, fmt.Errorf("unsupported method: %s", e.Method)
 	}
 }
 
 // Utilities
-func configureUrl(e config.Endpoint, cfg config.Config) string {
+func configureUrl(e shared.Endpoint, s *shared.State) string {
 	path := e.Path
 	var queryCount int
 	// Check if we need to replace a dynamic path parameters
 	for k, p := range e.Parameters {
-		val, err := p.GetValue(k, e)
-		if err != nil {
-			fmt.Print(err)
+		val, err := p.GetValue(s, k, e)
+		if err != nil && p.Required {
+			fmt.Printf("%s\n", err)
 			os.Exit(1)
 		}
 		switch p.In {
@@ -58,12 +60,12 @@ func configureUrl(e config.Endpoint, cfg config.Config) string {
 			path += fmt.Sprintf("%s%s=%s", sep, k, val)
 		}
 	}
-	return cfg.API.BaseURL + path
+	return s.Cfg.API.BaseURL + path
 }
 
 // Method handlers
-func Get(e config.Endpoint, cfg config.Config) (r Result, err error) {
-	url := configureUrl(e, cfg)
+func Get(e shared.Endpoint, s *shared.State) (r Result, err error) {
+	url := configureUrl(e, s)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -83,15 +85,18 @@ func Get(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	}, nil
 }
 
-func Post(e config.Endpoint, cfg config.Config) (r Result, err error) {
-	url := configureUrl(e, cfg)
-	fmt.Print(url)
-	payload := e.Parameters
-	// TODO: handle parameters, get defaults value for now
-	// payload := map[string]string{
-	// 	"name":  "Antonin",
-	// 	"email": "antonin@example.com",
-	// }
+func Post(e shared.Endpoint, s *shared.State) (r Result, err error) {
+	url := configureUrl(e, s)
+	payload := map[string]any{}
+	for k, p := range e.Parameters {
+		val, err := p.GetValue(s, k, e)
+		if err != nil && p.Required {
+			fmt.Printf("%s \n", err)
+			os.Exit(1)
+		}
+
+		payload[k] = val
+	}
 
 	// Convert map to JSON
 	jsonData, err := json.Marshal(payload)
@@ -121,9 +126,8 @@ func Post(e config.Endpoint, cfg config.Config) (r Result, err error) {
 	}, nil
 }
 
-// func Patch(e config.Endpoint, cfg config.Config) (r Result, err error)  {}
-func Delete(e config.Endpoint, cfg config.Config) (r Result, err error) {
-	url := configureUrl(e, cfg)
+func Delete(e shared.Endpoint, s *shared.State) (r Result, err error) {
+	url := configureUrl(e, s)
 
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {

@@ -5,23 +5,21 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/killuox/koi/internal/api"
 	"github.com/killuox/koi/internal/config"
 	"github.com/killuox/koi/internal/output"
-	"gopkg.in/yaml.v2"
+	"github.com/killuox/koi/internal/shared"
 )
-
-type State struct {
-	cfg config.Config
-}
 
 type Command struct {
 	name     string
 	args     []string
-	endpoint config.Endpoint
+	endpoint shared.Endpoint
 }
 
 type commands struct {
@@ -29,19 +27,21 @@ type commands struct {
 
 func Init() {
 	commands := &commands{}
-	state := &State{}
+	state := &shared.State{
+		Flags: commands.getFlags(),
+	}
 
 	if len(os.Args) < 2 {
 		fmt.Print("Not enough arguments provided.\n")
 		os.Exit(1)
 	}
-	cfg, err := state.readConfig()
+	cfg, err := config.Read()
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
 
-	state.cfg = cfg
+	state.Cfg = cfg
 	cName := os.Args[1]
 	args := os.Args[2:]
 
@@ -113,10 +113,10 @@ func (c *commands) processAPIResult(
 	}
 }
 
-func (c *commands) run(s *State, cmd Command) error {
+func (c *commands) run(s *shared.State, cmd Command) error {
 	callFunc := func() (api.Result, error) {
 		startTime := time.Now()
-		result, err := api.Call(cmd.endpoint, s.cfg)
+		result, err := api.Call(cmd.endpoint, s)
 		endTime := time.Now()
 
 		if err == nil {
@@ -139,16 +139,30 @@ func (c *commands) run(s *State, cmd Command) error {
 	return nil
 }
 
-func (s *State) readConfig() (cfg config.Config, err error) {
-	yamlFile, err := os.ReadFile("koi.config.yaml")
-	if err != nil {
-		return config.Config{}, fmt.Errorf("error reading or missing koi.config.yaml file")
-	}
-	var config config.Config
-	err = yaml.Unmarshal(yamlFile, &config)
-	if err != nil {
-		return config, fmt.Errorf("error unmarshalling config file")
+func (cmd *commands) getFlags() map[string]any {
+	flagsMap := make(map[string]any)
+
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") {
+			kv := strings.TrimPrefix(arg, "--")
+
+			parts := strings.SplitN(kv, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+
+			val := parts[1]
+
+			// Try to detect type
+			if i, err := strconv.Atoi(val); err == nil {
+				flagsMap[parts[0]] = i
+			} else if b, err := strconv.ParseBool(val); err == nil {
+				flagsMap[parts[0]] = b
+			} else {
+				flagsMap[parts[0]] = val
+			}
+		}
 	}
 
-	return config, nil
+	return flagsMap
 }

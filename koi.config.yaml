@@ -16,6 +16,31 @@ endpoints:
         required: true
     defaults:
       id: 1
+  create-post:
+    method: POST
+    path: /posts
+    parameters:
+      title:
+        type: string
+        description: The title of the post.
+        required: true
+        validation:
+          minLength: 3
+          maxLength: 100
+      body:
+        type: string
+        description: The body of the post.
+        required: true
+        validation:
+          minLength: 10
+          maxLength: 500
+      userId:
+        type: int
+        description: The ID of the user creating the post.
+    defaults:
+      title: "My First Post"
+      body: "This is the body of my first post."
+    
   # get-pokemons:
   #   method: GET
   #   path: /pokemon
@@ -39,7 +64,6 @@ endpoints:
   #     name:
   #       type: string
   #       mode: seed
-  #       in: body
   #       description: The name of the user.
   #       validation:
   #         minLength: 3
@@ -47,7 +71,6 @@ endpoints:
   #     email:
   #       type: string
   #       mode: env
-  #       in: body
   #       description: The email of the user.
   #   defaults:
   #     name: "John Doe"
