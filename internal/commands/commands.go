@@ -142,27 +142,62 @@ func (c *commands) run(s *shared.State, cmd Command) error {
 func (cmd *commands) getFlags() map[string]any {
 	flagsMap := make(map[string]any)
 
-	for _, arg := range os.Args[1:] {
+	args := os.Args[1:]
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+
+		// Long flags: --key=value or --key value
 		if strings.HasPrefix(arg, "--") {
 			kv := strings.TrimPrefix(arg, "--")
 
-			parts := strings.SplitN(kv, "=", 2)
-			if len(parts) != 2 {
-				continue
+			if strings.Contains(kv, "=") {
+				parts := strings.SplitN(kv, "=", 2)
+				flagsMap[parts[0]] = parseValue(parts[1])
+			} else {
+				// If next arg exists and isn't a flag, use it as value
+				if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+					flagsMap[kv] = parseValue(args[i+1])
+					i++
+				} else {
+					flagsMap[kv] = true
+				}
 			}
 
-			val := parts[1]
+			// Short flags: -k value or -k=value
+		} else if strings.HasPrefix(arg, "-") {
+			kv := strings.TrimPrefix(arg, "-")
 
-			// Try to detect type
-			if i, err := strconv.Atoi(val); err == nil {
-				flagsMap[parts[0]] = i
-			} else if b, err := strconv.ParseBool(val); err == nil {
-				flagsMap[parts[0]] = b
+			if strings.Contains(kv, "=") {
+				parts := strings.SplitN(kv, "=", 2)
+				flagsMap[parts[0]] = parseValue(parts[1])
 			} else {
-				flagsMap[parts[0]] = val
+				if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+					flagsMap[kv] = parseValue(args[i+1])
+					i++
+				} else {
+					flagsMap[kv] = true
+				}
 			}
 		}
 	}
 
 	return flagsMap
+}
+
+// parseValue detects bool, int, float, or string
+func parseValue(val string) any {
+	// Try int
+	if i, err := strconv.Atoi(val); err == nil {
+		return i
+	}
+	// Try float
+	if f, err := strconv.ParseFloat(val, 64); err == nil {
+		return f
+	}
+	// Try bool
+	if b, err := strconv.ParseBool(val); err == nil {
+		return b
+	}
+	// Default: string
+	return val
 }
