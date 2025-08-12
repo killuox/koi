@@ -2,4 +2,7 @@
 - Seed mode
 - Fix loader still showing in the terminal after
 - Add help output when empty args
+
+EXTRA FEATURES
+- Handle validation
 - Add tags to display headers
