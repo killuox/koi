@@ -8,17 +8,16 @@ Brainstorm commands structure
     - if no arg prodived it will be the help command
     - else its a endpoint call
 --------------
- - Handle all endpoint method and specifications
+- Fix loader still showing in the terminal after <-
+- Handle all endpoint method and specifications
     - path X
     - query X
     - DELETE X
-    - POST <-
+    - POST X
     - PATCH
     - PUT
-= EMV mode
+- EMV mode
 - Seed mode
 - Add help output when empty args
-- Add tags setup to pass values
-- Add tags to display headers too
+- Add tags to display headers
 - Check if endpoint required rule is necessary
-- Fix loader still showing in the terminal after

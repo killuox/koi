@@ -27,10 +27,8 @@ func Call(e shared.Endpoint, s *shared.State) (r Result, err error) {
 		return Get(e, s)
 	case "POST":
 		return Post(e, s)
-	// case "PATCH":
-	// 	return Patch(e, s)
-	// case "PUT"
-	// return Put(e, s)
+	case "PUT", "PATCH":
+		return Update(e, s)
 	case "DELETE":
 		return Delete(e, s)
 	default:
@@ -126,10 +124,54 @@ func Post(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	}, nil
 }
 
+func Update(e shared.Endpoint, s *shared.State) (r Result, err error) {
+	url := configureUrl(e, s)
+	payload := map[string]any{}
+	for k, p := range e.Parameters {
+		val, err := p.GetValue(s, k, e)
+		if err != nil && p.Required {
+			fmt.Printf("%s \n", err)
+			os.Exit(1)
+		}
+
+		payload[k] = val
+	}
+
+	// Convert map to JSON
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("Error encoding JSON:", err)
+		return
+	}
+
+	req, err := http.NewRequest(e.Method, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return Result{}, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return Result{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Result{}, err
+	}
+
+	return Result{
+		Body:   body,
+		Url:    url,
+		Status: resp.StatusCode,
+		Method: e.Method,
+	}, nil
+}
+
 func Delete(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	url := configureUrl(e, s)
 
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest(e.Method, url, nil)
 	if err != nil {
 		return Result{}, err
 	}

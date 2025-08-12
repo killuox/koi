@@ -40,7 +40,38 @@ endpoints:
     defaults:
       title: "My First Post"
       body: "This is the body of my first post."
-    
+      userId: 1
+  update-post:
+    method: PUT
+    path: /posts/{id}
+    parameters:
+      id:
+        type: int
+        description: The ID of the post to update.
+        in: path
+        required: true
+      title:
+        type: string
+        description: The title of the post.
+        required: true
+        validation:
+          minLength: 3
+          maxLength: 100
+      body:
+        type: string
+        description: The body of the post.
+        required: true
+        validation:
+          minLength: 10
+          maxLength: 500
+      userId:
+        type: int
+        description: The ID of the user updating the post.
+    defaults:
+      id: 102
+      title: "My Updated Post"
+      body: "This is the updated body of my post."
+      userId: 1
   # get-pokemons:
   #   method: GET
   #   path: /pokemon

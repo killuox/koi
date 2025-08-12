@@ -77,7 +77,6 @@ func (c *commands) runWithLoader(
 			log.Printf("Error running loader: %v", err)
 		}
 	})
-	defer timer.Stop()
 
 	result, err := f()
 
