@@ -1,6 +1,10 @@
 package shared
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/killuox/koi/internal/env"
+)
 
 type State struct {
 	Cfg   Config
@@ -54,7 +58,39 @@ func (p Parameter) GetValue(s *State, key string, e Endpoint) (any, error) {
 	// Get the default value
 	defaultVal, ok := e.Defaults[key]
 	if ok {
-		return defaultVal, nil
+		// check if mode is env else return default value
+		if p.Mode == "env" {
+			envValue, err := p.GetEnvValue(defaultVal, key)
+			if err == nil {
+				return envValue, nil
+			}
+		} else {
+			return defaultVal, nil
+		}
 	}
 	return nil, fmt.Errorf("no value provided for parameter: %s", key)
+}
+
+func (p Parameter) GetEnvValue(defaultVal any, key string) (any, error) {
+	envKey := fmt.Sprint(defaultVal)
+	switch p.Type {
+	case "string":
+		v, exists := env.GetString(envKey, "")
+		if exists {
+			return v, nil
+		}
+	case "int":
+		v, exists := env.GetInt(envKey, 0)
+		if exists {
+			return v, nil
+		}
+	case "bool":
+		v, exists := env.GetBool(envKey, false)
+		if exists {
+			return v, nil
+		}
+	default:
+		return nil, fmt.Errorf("wrong parameter type for: %s", key)
+	}
+	return nil, fmt.Errorf("wrong parameter type for: %s", key)
 }
