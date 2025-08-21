@@ -28,10 +28,10 @@ endpoints:
         type: string
         description: The email of the user.
         required: true
-        mode: env
+        mode: env:MY_EMAIL
     defaults:
-      name: "John Doe"
-      email: MY_EMAIL
+      name: John Doe
+      email: aarsenault@example.com
   create-post:
     method: POST
     path: /posts

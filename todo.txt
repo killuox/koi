@@ -1,8 +1,12 @@
-- EMV mode
+Restructure mode for ex: env:EMAIL, seed:first_name etc...
 - Seed mode
+    - check for existing lib
+    - Add json data for first_name, last_name, email
+    - Add lorem ipsum lib or make it ourself must handle text depending on validation min max length
+    - handle all params types(int, bool, string)
+- Handle validation
 - Fix loader still showing in the terminal after
 - Add help output when empty args
 
 EXTRA FEATURES
-- Handle validation
 - Add tags to display headers

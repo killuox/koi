@@ -2,6 +2,7 @@ package shared
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/killuox/koi/internal/env"
 )
@@ -55,42 +56,48 @@ func (p Parameter) GetValue(s *State, key string, e Endpoint) (any, error) {
 	if ok {
 		return flagVal, nil
 	}
+
+	modeParts := strings.Split(p.Mode, ":")
+	if len(modeParts) == 2 {
+		modeType := modeParts[0]
+		modeValue := modeParts[1]
+
+		if modeType == "env" {
+			envValue, err := p.GetEnvValue(modeValue, "")
+			if err == nil && envValue != "" {
+				return envValue, nil
+			}
+		}
+	}
+
 	// Get the default value
 	defaultVal, ok := e.Defaults[key]
 	if ok {
-		// check if mode is env else return default value
-		if p.Mode == "env" {
-			envValue, err := p.GetEnvValue(defaultVal, key)
-			if err == nil {
-				return envValue, nil
-			}
-		} else {
-			return defaultVal, nil
-		}
+		return defaultVal, nil
 	}
+
 	return nil, fmt.Errorf("no value provided for parameter: %s", key)
 }
 
-func (p Parameter) GetEnvValue(defaultVal any, key string) (any, error) {
-	envKey := fmt.Sprint(defaultVal)
+func (p Parameter) GetEnvValue(key string, defaultVal any) (any, error) {
 	switch p.Type {
 	case "string":
-		v, exists := env.GetString(envKey, "")
+		v, exists := env.GetString(key, "")
 		if exists {
 			return v, nil
 		}
 	case "int":
-		v, exists := env.GetInt(envKey, 0)
+		v, exists := env.GetInt(key, 0)
 		if exists {
 			return v, nil
 		}
 	case "bool":
-		v, exists := env.GetBool(envKey, false)
+		v, exists := env.GetBool(key, false)
 		if exists {
 			return v, nil
 		}
 	default:
 		return nil, fmt.Errorf("wrong parameter type for: %s", key)
 	}
-	return nil, fmt.Errorf("wrong parameter type for: %s", key)
+	return defaultVal, nil
 }
