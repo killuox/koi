@@ -1,12 +1,18 @@
-Restructure mode for ex: env:EMAIL, seed:first_name etc...
-- Seed mode
-    - check for existing lib
-    - Add json data for first_name, last_name, email
-    - Add lorem ipsum lib or make it ourself must handle text depending on validation min max length
-    - handle all params types(int, bool, string)
-- Handle validation
+- faker mode
+    - Make random values when no rules provided
 - Fix loader still showing in the terminal after
 - Add help output when empty args
+- Handle Authorization headers
+- Try to deploy + download
+- Make a documentation website + branding + logo
+
+
+IMPROVEMENTS
+- Refactoring(try to get rid of the shared.go)
+- Remove all any(s) and find more robust solutions
+- Improve all error messages
 
 EXTRA FEATURES
-- Add tags to display headers
+- Add tags to display headers or other informations
+- More rules?
+

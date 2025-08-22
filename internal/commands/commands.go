@@ -37,7 +37,7 @@ func Init() {
 	}
 	cfg, err := config.Read()
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Printf("%s\n", err)
 		os.Exit(1)
 	}
 

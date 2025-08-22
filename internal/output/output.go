@@ -27,7 +27,7 @@ func ShowResponse(r api.Result) {
 	)
 
 	if _, err := p.Run(); err != nil {
-		fmt.Println("could not run program:", err)
+		fmt.Printf("could not run program: %s\n", err)
 		os.Exit(1)
 	}
 }

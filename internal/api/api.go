@@ -93,7 +93,7 @@ func Post(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	for k, p := range e.Parameters {
 		val, err := p.GetValue(s, k, e)
 		if err != nil && p.Required {
-			fmt.Printf("%s \n", err)
+			fmt.Printf("%s\n", err)
 			os.Exit(1)
 		}
 
@@ -134,7 +134,7 @@ func Update(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	for k, p := range e.Parameters {
 		val, err := p.GetValue(s, k, e)
 		if err != nil && p.Required {
-			fmt.Printf("%s \n", err)
+			fmt.Printf("%s\n", err)
 			os.Exit(1)
 		}
 
