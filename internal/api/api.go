@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -40,22 +41,25 @@ func Call(e shared.Endpoint, s *shared.State) (r Result, err error) {
 func configureUrl(e shared.Endpoint, s *shared.State) string {
 	path := e.Path
 	var queryCount int
-	// Check if we need to replace a dynamic path parameters
-	for k, p := range e.Parameters {
-		val, err := p.GetValue(s, k, e)
-		if err != nil && p.Required {
-			fmt.Printf("%s\n", err)
-			os.Exit(1)
-		}
-		switch p.In {
-		case "path":
-			path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", val))
-		case "query":
-			sep := "?"
-			if queryCount > 0 {
-				sep = "&"
+	var re = regexp.MustCompile(`\{[^}]+\}`) // Check if {anything}
+	if re.MatchString(path) {
+		// Check if we need to replace a dynamic path parameters
+		for k, p := range e.Parameters {
+			val, err := p.GetValue(s, k, e)
+			if err != nil && p.Required {
+				fmt.Printf("%s\n", err)
+				os.Exit(1)
 			}
-			path += fmt.Sprintf("%s%s=%s", sep, k, val)
+			switch p.In {
+			case "path":
+				path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", val))
+			case "query":
+				sep := "?"
+				if queryCount > 0 {
+					sep = "&"
+				}
+				path += fmt.Sprintf("%s%s=%s", sep, k, val)
+			}
 		}
 	}
 	return s.Cfg.API.BaseURL + path
@@ -89,7 +93,7 @@ func Post(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	for k, p := range e.Parameters {
 		val, err := p.GetValue(s, k, e)
 		if err != nil && p.Required {
-			fmt.Printf("%s \n", err)
+			fmt.Printf("%s\n", err)
 			os.Exit(1)
 		}
 
@@ -130,7 +134,7 @@ func Update(e shared.Endpoint, s *shared.State) (r Result, err error) {
 	for k, p := range e.Parameters {
 		val, err := p.GetValue(s, k, e)
 		if err != nil && p.Required {
-			fmt.Printf("%s \n", err)
+			fmt.Printf("%s\n", err)
 			os.Exit(1)
 		}
 

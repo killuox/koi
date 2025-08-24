@@ -11,7 +11,6 @@ endpoints:
     parameters:
       id:
         type: int
-        description: The ID of the post to delete.
         in: path
         required: true
     defaults:
@@ -22,34 +21,49 @@ endpoints:
     parameters:
       name:
         type: string
-        description: The name of the user.
         required: true
+        mode: faker:full_name
       email:
         type: string
-        description: The email of the user.
         required: true
-        mode: env
+        mode: faker:email
+      userId:
+        type: int
+        required: true
+        mode: faker:number
+        rules:
+          min: 1
+          max: 100
     defaults:
-      name: "John Doe"
-      email: MY_EMAIL
+      name: John Doe
+      email: aarsenault@example.com
   create-post:
     method: POST
     path: /posts
     parameters:
       title:
         type: string
-        description: The title of the post.
         required: true
+        mode: faker:sentence
+        rules:
+          word_count: 12
       body:
         type: string
-        description: The body of the post.
         required: true
+        mode: faker:paragraph
+        rules:
+          paragraph_count: 3
+          sentence_count: 2
+          word_count: 12
       userId:
         type: int
-        description: The ID of the user creating the post.
+        required: true
+        mode: faker:number
+        rules:
+          min: 1
+          max: 10
     defaults:
       title: "My First Post"
-      body: "This is the body of my first post."
       userId: 1
   update-post:
     method: PUT
@@ -57,20 +71,16 @@ endpoints:
     parameters:
       id:
         type: int
-        description: The ID of the post to update.
         in: path
         required: true
       title:
         type: string
-        description: The title of the post.
         required: true
       body:
         type: string
-        description: The body of the post.
         required: true
       userId:
         type: int
-        description: The ID of the user updating the post.
     defaults:
       id: 102
       title: "My Updated Post"

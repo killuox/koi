@@ -2,9 +2,13 @@ package shared
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/killuox/koi/internal/env"
 )
+
+var validFakerKeys = []string{"full_name", "first_name", "last_name", "email", "password", "company", "phone", "lorem_ipsum", "number", "image", "sentence", "paragraph"}
 
 type State struct {
 	Cfg   Config
@@ -36,61 +40,125 @@ type Endpoint struct {
 }
 
 type Parameter struct {
-	Type        string     `yaml:"type"`
-	Mode        string     `yaml:"mode"`
-	In          string     `yaml:"in"`
-	Description string     `yaml:"description"`
-	Required    bool       `yaml:"required"`
-	Validation  Validation `yaml:"validation"`
+	Type        string `yaml:"type"`
+	Mode        string `yaml:"mode"`
+	In          string `yaml:"in"`
+	Description string `yaml:"description"`
+	Required    bool   `yaml:"required"`
+	Rules       Rules  `yaml:"rules"`
 }
 
-type Validation struct {
-	MinLength int `yaml:"minLength"`
-	MaxLength int `yaml:"maxLength"`
+type Rules struct {
+	// For strings
+	MinLength int `yaml:"min_length"`
+	MaxLength int `yaml:"max_length"`
+	// For Image
+	Width  int `yaml:"width"`
+	Height int `yaml:"height"`
+	// For paragraph and sentence
+	ParagraphCount int `yaml:"paragraph_count"`
+	SentenceCount  int `yaml:"sentence_count"`
+	WordCount      int `yaml:"word_count"`
+	// For numbers
+	Min int `yaml:"min"`
+	Max int `yaml:"max"`
 }
 
 func (p Parameter) GetValue(s *State, key string, e Endpoint) (any, error) {
+	// Get the default value
+	defaultVal, hasDefaultValue := e.Defaults[key]
+
 	// Check for flag value
 	flagVal, ok := s.Flags[key]
 	if ok {
 		return flagVal, nil
 	}
-	// Get the default value
-	defaultVal, ok := e.Defaults[key]
-	if ok {
-		// check if mode is env else return default value
-		if p.Mode == "env" {
-			envValue, err := p.GetEnvValue(defaultVal, key)
-			if err == nil {
-				return envValue, nil
+
+	modeParts := strings.Split(p.Mode, ":")
+	if len(modeParts) == 2 {
+		modeType := modeParts[0]
+		modeValue := modeParts[1]
+
+		if modeType == "env" {
+			v, err := p.GetEnvValue(modeValue, defaultVal)
+			if err == nil && v != "" {
+				return v, nil
 			}
-		} else {
-			return defaultVal, nil
+		}
+
+		if modeType == "faker" {
+			v, err := p.GetFakerValue(modeValue)
+			if err == nil {
+				return v, nil
+			}
 		}
 	}
+
+	if hasDefaultValue {
+		return defaultVal, nil
+	}
+
 	return nil, fmt.Errorf("no value provided for parameter: %s", key)
 }
 
-func (p Parameter) GetEnvValue(defaultVal any, key string) (any, error) {
-	envKey := fmt.Sprint(defaultVal)
+func (p Parameter) GetEnvValue(key string, defaultVal any) (any, error) {
 	switch p.Type {
 	case "string":
-		v, exists := env.GetString(envKey, "")
+		v, exists := env.GetString(key, "")
 		if exists {
 			return v, nil
 		}
 	case "int":
-		v, exists := env.GetInt(envKey, 0)
+		v, exists := env.GetInt(key, 0)
 		if exists {
 			return v, nil
 		}
 	case "bool":
-		v, exists := env.GetBool(envKey, false)
+		v, exists := env.GetBool(key, false)
 		if exists {
 			return v, nil
 		}
 	default:
 		return nil, fmt.Errorf("wrong parameter type for: %s", key)
 	}
-	return nil, fmt.Errorf("wrong parameter type for: %s", key)
+	return defaultVal, nil
+}
+
+func (p Parameter) GetFakerValue(key string) (any, error) {
+	var isValid bool
+	for _, fk := range validFakerKeys {
+		if fk == key {
+			isValid = true
+		}
+	}
+	if !isValid {
+		return nil, fmt.Errorf("invalid key for faker mode make sure to provide a valid one")
+	}
+
+	switch key {
+	case "first_name":
+		return gofakeit.FirstName(), nil
+	case "last_name":
+		return gofakeit.LastName(), nil
+	case "full_name":
+		return gofakeit.Name(), nil
+	case "phone":
+		return gofakeit.Phone(), nil
+	case "email":
+		return gofakeit.Email(), nil
+	case "password":
+		return gofakeit.Password(true, true, true, true, false, 12), nil // TODO: make it dynamic via rules
+	case "company":
+		return gofakeit.Company(), nil
+	case "image":
+		return gofakeit.Image(p.Rules.Width, p.Rules.Height), nil
+	case "number":
+		return gofakeit.Number(p.Rules.Min, p.Rules.Max), nil
+	case "sentence":
+		return gofakeit.Sentence(p.Rules.WordCount), nil
+	case "paragraph":
+		return gofakeit.Paragraph(p.Rules.ParagraphCount, p.Rules.SentenceCount, p.Rules.WordCount, "\n"), nil
+	default:
+		return nil, fmt.Errorf("key %s does not exist in mode faker", key)
+	}
 }

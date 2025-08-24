@@ -1,8 +1,17 @@
-- EMV mode
-- Seed mode
-- Fix loader still showing in the terminal after
+- Handle Authorization headers
 - Add help output when empty args
+- Try to deploy + download
+- Make a documentation website + branding + logo
+
+IMPROVEMENTS
+- Refactoring(try to get rid of the shared.go)
+- Remove all any(s) and find more robust solutions
+- Improve all error messages
+- Make random values when no rules provided
+- Improve Parameters struct depending on mode
+- Fix loader still showing in the terminal after
 
 EXTRA FEATURES
-- Handle validation
-- Add tags to display headers
+- Add tags to display headers or other informations
+- More rules?
+
