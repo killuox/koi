@@ -1,13 +1,24 @@
-# config.yaml
 api:
   baseUrl: https://jsonplaceholder.typicode.com
-  version: v1
-  auth:
-    type: Bearer
 endpoints:
+  login:
+    method: POST
+    path: /login
+    parameters:
+      email:
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+    set-variables:
+      body:
+        token: token
   delete-post:
     method: DELETE
     path: /posts/{id}
+    headers:
+      Authorization: Bearer {{token}}
     parameters:
       id:
         type: int

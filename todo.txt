@@ -1,7 +1,10 @@
-- Handle Authorization headers
-- Add help output when empty args
-- Try to deploy + download
-- Make a documentation website + branding + logo
+- Handle Authorization headers + other headers
+    - Handle store config when receiving a response
+    - Store the value in the user root file .koi/store.json, create it if not exist
+    - Make it possible to use store values with the {{}}. Either in default values, flags, parameters.
+- Add help output when empty args and help flags
+- Try to deploy + download(goreleaser + node wrapper + homebrew + scoop + go)
+- Make a documentation(docusorus) website + branding + logo 
 
 IMPROVEMENTS
 - Refactoring(try to get rid of the shared.go)
