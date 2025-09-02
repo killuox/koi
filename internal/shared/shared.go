@@ -21,13 +21,13 @@ type Config struct {
 }
 
 type API struct {
-	BaseURL string `yaml:"baseUrl"`
-	Version string `yaml:"version"`
-	Auth    Auth   `yaml:"auth"`
+	BaseURL string                 `yaml:"baseUrl"`
+	Headers map[string]interface{} `yaml:"headers"`
 }
 
-type Auth struct {
-	Type string `yaml:"type"`
+type Headers struct {
+	Authorization string `yaml:"Authorization"`
+	ContentType   string `yaml:"ContentType"`
 }
 
 type Endpoint struct {

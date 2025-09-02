@@ -1,7 +1,10 @@
 - Handle Authorization headers + other headers
-    - Handle store config when receiving a response
-    - Store the value in the user root file .koi/store.json, create it if not exist
-    - Make it possible to use store values with the {{}}. Either in default values, flags, parameters.
+    1. Create a test api in golang(chi) X
+    2. Add the test endpoints to the config X
+    4. Get the user variables.json values 
+    3. When reading the config file also replace all {{}} variables
+    4. Add headers config to the request
+    5. Handle set-variables, must be stored in the root of the user computer in a .koi/variables.json file
 - Add help output when empty args and help flags
 - Try to deploy + download(goreleaser + node wrapper + homebrew + scoop + go)
 - Make a documentation(docusorus) website + branding + logo 

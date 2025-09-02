@@ -14,12 +14,14 @@ import (
 	"github.com/killuox/koi/internal/config"
 	"github.com/killuox/koi/internal/output"
 	"github.com/killuox/koi/internal/shared"
+	"github.com/killuox/koi/internal/variables"
 )
 
 type Command struct {
-	name     string
-	args     []string
-	endpoint shared.Endpoint
+	name      string
+	args      []string
+	endpoint  shared.Endpoint
+	variables map[string]interface{}
 }
 
 type commands struct {
@@ -35,7 +37,14 @@ func Init() {
 		fmt.Print("Not enough arguments provided.\n")
 		os.Exit(1)
 	}
-	cfg, err := config.Read()
+
+	vars, err := variables.GetUserVariables()
+	if err != nil {
+		fmt.Print("Error while getting user variables")
+		os.Exit(1)
+	}
+
+	cfg, err := config.Read(vars)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
@@ -52,9 +61,10 @@ func Init() {
 	}
 
 	cmd := Command{
-		name:     cName,
-		args:     args,
-		endpoint: ep,
+		name:      cName,
+		args:      args,
+		endpoint:  ep,
+		variables: vars,
 	}
 
 	err = commands.run(state, cmd)
