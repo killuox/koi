@@ -20,3 +20,9 @@ endpoints:
     defaults:
       email: user@example.com
       password: password
+  test:
+    method: GET
+    path: /
+  protected:
+    method: GET
+    path: /protected

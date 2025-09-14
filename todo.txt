@@ -1,8 +1,8 @@
 - Handle Authorization headers + other headers
     1. Create a test api in golang(chi) X
     2. Add the test endpoints to the config X
-    4. Get the user variables.json values 
-    3. When reading the config file also replace all {{}} variables
+    4. Get the user variables.json values X
+    3. When reading the config file also replace all {{}} variables X
     4. Add headers config to the request
     5. Handle set-variables, must be stored in the root of the user computer in a .koi/variables.json file
 - Add help output when empty args and help flags

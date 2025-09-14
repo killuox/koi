@@ -21,8 +21,8 @@ type Config struct {
 }
 
 type API struct {
-	BaseURL string                 `yaml:"baseUrl"`
-	Headers map[string]interface{} `yaml:"headers"`
+	BaseURL string            `yaml:"baseUrl"`
+	Headers map[string]string `yaml:"headers"`
 }
 
 type Headers struct {
