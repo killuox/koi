@@ -50,6 +50,12 @@ func Init() {
 		os.Exit(1)
 	}
 
+	err = config.Validate(cfg)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		os.Exit(1)
+	}
+
 	state.Cfg = cfg
 	cName := os.Args[1]
 	args := os.Args[2:]

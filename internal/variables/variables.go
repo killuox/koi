@@ -40,11 +40,6 @@ func SetUserVariable(key string, val any) error {
 		return fmt.Errorf("error reading file: %w", err)
 	}
 
-	filePath, err := getFilePath()
-	if err != nil {
-		return err
-	}
-
 	// Unmarshal existing variables
 	var vars map[string]any
 	if len(data) > 0 {
@@ -62,6 +57,11 @@ func SetUserVariable(key string, val any) error {
 	updatedData, err := json.MarshalIndent(vars, "", "  ")
 	if err != nil {
 		return fmt.Errorf("error marshalling updated data: %w", err)
+	}
+
+	filePath, err := getFilePath()
+	if err != nil {
+		return err
 	}
 
 	// Write back to file

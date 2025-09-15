@@ -30,9 +30,6 @@ type Headers struct {
 	ContentType   string `yaml:"ContentType"`
 }
 
-// First key is the location
-// the string key of the map is name you want to register the variable has
-// the value is the key you want to get the value from
 type SetVariableConfig struct {
 	Body map[string]any `yaml:"body"`
 }
@@ -60,14 +57,14 @@ type Rules struct {
 	// For strings
 	MinLength int `yaml:"min_length"`
 	MaxLength int `yaml:"max_length"`
-	// For Image
+	// Faker mode - Image
 	Width  int `yaml:"width"`
 	Height int `yaml:"height"`
-	// For paragraph and sentence
+	// Faker mode - For paragraph and sentence
 	ParagraphCount int `yaml:"paragraph_count"`
 	SentenceCount  int `yaml:"sentence_count"`
 	WordCount      int `yaml:"word_count"`
-	// For numbers
+	// Faker mode - For numbers
 	Min int `yaml:"min"`
 	Max int `yaml:"max"`
 }

@@ -44,3 +44,8 @@ func Read(vars map[string]any) (cfg shared.Config, err error) {
 
 	return config, nil
 }
+
+func Validate(cfg shared.Config) error {
+
+	return nil
+}
