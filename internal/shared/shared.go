@@ -30,13 +30,21 @@ type Headers struct {
 	ContentType   string `yaml:"ContentType"`
 }
 
+// First key is the location
+// the string key of the map is name you want to register the variable has
+// the value is the key you want to get the value from
+type SetVariableConfig struct {
+	Body map[string]any `yaml:"body"`
+}
+
 type Endpoint struct {
-	Type       string               `yaml:"type"`
-	Method     string               `yaml:"method"`
-	Mode       string               `yaml:"mode"`
-	Path       string               `yaml:"path"`
-	Parameters map[string]Parameter `yaml:"parameters"`
-	Defaults   map[string]any       `yaml:"defaults"`
+	Type         string               `yaml:"type"`
+	Method       string               `yaml:"method"`
+	Mode         string               `yaml:"mode"`
+	Path         string               `yaml:"path"`
+	Parameters   map[string]Parameter `yaml:"parameters"`
+	Defaults     map[string]any       `yaml:"defaults"`
+	SetVariables SetVariableConfig    `yaml:"set-variables"`
 }
 
 type Parameter struct {

@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/killuox/koi/internal/shared"
+	"github.com/killuox/koi/internal/utils"
+	"github.com/killuox/koi/internal/variables"
 )
 
 type Result struct {
@@ -114,6 +116,25 @@ func doRequest(e shared.Endpoint, s *shared.State) (Result, error) {
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return Result{}, err
+	}
+
+	if e.SetVariables.Body != nil {
+		// Unmarshal response body into a generic map
+		var respMap map[string]any
+		if err := json.Unmarshal(respBody, &respMap); err != nil {
+			return Result{}, fmt.Errorf("failed to unmarshal response: %w", err)
+		}
+		for varName, sourceName := range e.SetVariables.Body {
+			source, ok := sourceName.(string)
+			if !ok {
+				continue // skip invalid config
+			}
+
+			// Navigate response JSON using dot notation path
+			if val, found := utils.DeepGet(respMap, source); found {
+				variables.SetUserVariable(varName, val)
+			}
+		}
 	}
 
 	return Result{

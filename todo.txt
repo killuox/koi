@@ -3,8 +3,9 @@
     2. Add the test endpoints to the config X
     4. Get the user variables.json values X
     3. When reading the config file also replace all {{}} variables X
-    4. Add headers config to the request
+    4. Add headers config to the request X
     5. Handle set-variables, must be stored in the root of the user computer in a .koi/variables.json file
+- Add better validation for missing key in the configs ex: if no method for endpoint is provided the error is unclear
 - Add help output when empty args and help flags
 - Try to deploy + download(goreleaser + node wrapper + homebrew + scoop + go)
 - Make a documentation(docusorus) website + branding + logo 
