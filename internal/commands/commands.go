@@ -10,6 +10,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/go-playground/validator/v10"
 	"github.com/killuox/koi/internal/api"
 	"github.com/killuox/koi/internal/config"
 	"github.com/killuox/koi/internal/output"
@@ -50,9 +51,16 @@ func Init() {
 		os.Exit(1)
 	}
 
-	err = config.Validate(cfg)
-	if err != nil {
-		fmt.Printf("%s\n", err)
+	if err := config.Validate(cfg); err != nil {
+		if ve, ok := err.(validator.ValidationErrors); ok {
+			fmt.Println("❌ Invalid koi.config.yaml:")
+			for _, e := range ve {
+				// e.Namespace() shows nested paths like "Config.Endpoints[login].Method"
+				fmt.Printf("  - %s: %s\n", e.Namespace(), config.CreateValidatorMessage(e))
+			}
+		} else {
+			fmt.Printf("❌ Config error: %s\n", err)
+		}
 		os.Exit(1)
 	}
 

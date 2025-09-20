@@ -16,18 +16,13 @@ type State struct {
 }
 
 type Config struct {
-	API       API                 `yaml:"api"`
-	Endpoints map[string]Endpoint `yaml:"endpoints"`
+	API       API                 `yaml:"api" validate:"required"`
+	Endpoints map[string]Endpoint `yaml:"endpoints" validate:"required,dive"`
 }
 
 type API struct {
-	BaseURL string            `yaml:"baseUrl"`
+	BaseURL string            `yaml:"baseUrl" validate:"required,url"`
 	Headers map[string]string `yaml:"headers"`
-}
-
-type Headers struct {
-	Authorization string `yaml:"Authorization"`
-	ContentType   string `yaml:"ContentType"`
 }
 
 type SetVariableConfig struct {
@@ -35,19 +30,18 @@ type SetVariableConfig struct {
 }
 
 type Endpoint struct {
-	Type         string               `yaml:"type"`
-	Method       string               `yaml:"method"`
-	Mode         string               `yaml:"mode"`
-	Path         string               `yaml:"path"`
-	Parameters   map[string]Parameter `yaml:"parameters"`
+	Method       string               `yaml:"method" validate:"required,oneof=GET POST PUT PATCH DELETE"`
+	Path         string               `yaml:"path" validate:"required"`
+	Mode         string               `yaml:"mode" validate:"omitempty,oneof=env faker"`
+	Parameters   map[string]Parameter `yaml:"parameters" validate:"dive"`
 	Defaults     map[string]any       `yaml:"defaults"`
 	SetVariables SetVariableConfig    `yaml:"set-variables"`
 }
 
 type Parameter struct {
-	Type        string `yaml:"type"`
+	Type        string `yaml:"type" validate:"required,oneof=string int bool float"`
 	Mode        string `yaml:"mode"`
-	In          string `yaml:"in"`
+	In          string `yaml:"in" validate:"omitempty,oneof=query path body"`
 	Description string `yaml:"description"`
 	Required    bool   `yaml:"required"`
 	Rules       Rules  `yaml:"rules"`
@@ -55,15 +49,15 @@ type Parameter struct {
 
 type Rules struct {
 	// For strings
-	MinLength int `yaml:"min_length"`
-	MaxLength int `yaml:"max_length"`
+	MinLength int `yaml:"min_length" validate:"gte=0"`
+	MaxLength int `yaml:"max_length" validate:"gte=0"`
 	// Faker mode - Image
-	Width  int `yaml:"width"`
-	Height int `yaml:"height"`
+	Width  int `yaml:"width" validate:"gte=0"`
+	Height int `yaml:"height" validate:"gte=0"`
 	// Faker mode - For paragraph and sentence
-	ParagraphCount int `yaml:"paragraph_count"`
-	SentenceCount  int `yaml:"sentence_count"`
-	WordCount      int `yaml:"word_count"`
+	ParagraphCount int `yaml:"paragraph_count" validate:"gte=0"`
+	SentenceCount  int `yaml:"sentence_count" validate:"gte=0"`
+	WordCount      int `yaml:"word_count" validate:"gte=0"`
 	// Faker mode - For numbers
 	Min int `yaml:"min"`
 	Max int `yaml:"max"`

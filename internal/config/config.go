@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/killuox/koi/internal/shared"
 	"gopkg.in/yaml.v2"
 )
@@ -37,6 +38,7 @@ func Read(vars map[string]any) (cfg shared.Config, err error) {
 		return shared.Config{}, fmt.Errorf("error reading or missing koi.config.yaml file")
 	}
 	var config shared.Config
+
 	err = yaml.Unmarshal(yamlByte, &config)
 	if err != nil {
 		return config, fmt.Errorf("error unmarshalling config file")
@@ -46,6 +48,21 @@ func Read(vars map[string]any) (cfg shared.Config, err error) {
 }
 
 func Validate(cfg shared.Config) error {
+	validate := validator.New()
+	return validate.Struct(cfg)
+}
 
-	return nil
+func CreateValidatorMessage(e validator.FieldError) string {
+	switch e.Tag() {
+	case "required":
+		return "is required but missing"
+	case "url":
+		return "must be a valid URL"
+	case "oneof":
+		return fmt.Sprintf("must be one of [%s]", e.Param())
+	case "gte":
+		return fmt.Sprintf("must be greater than or equal to %s", e.Param())
+	default:
+		return fmt.Sprintf("failed validation rule '%s'", e.Tag())
+	}
 }
