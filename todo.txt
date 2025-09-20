@@ -1,4 +1,3 @@
-- Add better validation for missing key in the configs ex: if no method for endpoint is provided the error is unclear - use github.com/go-playground/validator/v10
 - Add help output when empty args and help flags
 - Make a documentation(docusorus) website + branding + logo 
 - Try to deploy + download(goreleaser + node wrapper + homebrew + scoop + go)

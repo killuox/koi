@@ -34,11 +34,6 @@ func Init() {
 		Flags: commands.getFlags(),
 	}
 
-	if len(os.Args) < 2 {
-		fmt.Print("Not enough arguments provided.\n")
-		os.Exit(1)
-	}
-
 	vars, err := variables.GetUserVariables()
 	if err != nil {
 		fmt.Print("Error while getting user variables")
@@ -55,13 +50,17 @@ func Init() {
 		if ve, ok := err.(validator.ValidationErrors); ok {
 			fmt.Println("❌ Invalid koi.config.yaml:")
 			for _, e := range ve {
-				// e.Namespace() shows nested paths like "Config.Endpoints[login].Method"
 				fmt.Printf("  - %s: %s\n", e.Namespace(), config.CreateValidatorMessage(e))
 			}
 		} else {
 			fmt.Printf("❌ Config error: %s\n", err)
 		}
 		os.Exit(1)
+	}
+
+	if len(os.Args) < 2 {
+		commands.printHelp(cfg)
+		return
 	}
 
 	state.Cfg = cfg
@@ -205,6 +204,26 @@ func (cmd *commands) getFlags() map[string]any {
 	}
 
 	return flagsMap
+}
+
+func (cmd *commands) printHelp(cfg shared.Config) {
+	fmt.Println("koi - API Testing CLI")
+	fmt.Println()
+	fmt.Println("Usage:")
+	fmt.Println("  koi <endpoint> [options]")
+	fmt.Println()
+	fmt.Println("Available Endpoints:")
+
+	for name, ep := range cfg.Endpoints {
+		fmt.Printf("  %-12s %s %s\n", name, ep.Method, ep.Path)
+	}
+
+	fmt.Println()
+	fmt.Println("Examples:")
+	fmt.Println("  koi login --email=user@example.com --password=secret")
+	fmt.Println("  koi health")
+	fmt.Println()
+	fmt.Println("Use \"koi help <endpoint>\" for more information about an endpoint.")
 }
 
 // parseValue detects bool, int, float, or string
