@@ -1,88 +1,28 @@
-# config.yaml
 api:
-  baseUrl: https://jsonplaceholder.typicode.com
-  version: v1
-  auth:
-    type: Bearer
+  baseUrl: http://localhost:8080
+  headers:
+    Authorization: Bearer {{token}}
+    ContentType: application/json
 endpoints:
-  delete-post:
-    method: DELETE
-    path: /posts/{id}
-    parameters:
-      id:
-        type: int
-        in: path
-        required: true
-    defaults:
-      id: 1
-  create-user:
+  login:
     method: POST
-    path: /users
+    path: /login
     parameters:
-      name:
-        type: string
-        required: true
-        mode: faker:full_name
       email:
         type: string
         required: true
-        mode: faker:email
-      userId:
-        type: int
-        required: true
-        mode: faker:number
-        rules:
-          min: 1
-          max: 100
-    defaults:
-      name: John Doe
-      email: aarsenault@example.com
-  create-post:
-    method: POST
-    path: /posts
-    parameters:
-      title:
+      password:
         type: string
         required: true
-        mode: faker:sentence
-        rules:
-          word_count: 12
+    set-variables:
       body:
-        type: string
-        required: true
-        mode: faker:paragraph
-        rules:
-          paragraph_count: 3
-          sentence_count: 2
-          word_count: 12
-      userId:
-        type: int
-        required: true
-        mode: faker:number
-        rules:
-          min: 1
-          max: 10
+        token: token
     defaults:
-      title: "My First Post"
-      userId: 1
-  update-post:
-    method: PUT
-    path: /posts/{id}
-    parameters:
-      id:
-        type: int
-        in: path
-        required: true
-      title:
-        type: string
-        required: true
-      body:
-        type: string
-        required: true
-      userId:
-        type: int
-    defaults:
-      id: 102
-      title: "My Updated Post"
-      body: "This is the updated body of my post."
-      userId: 1
+      email: user@example.com
+      password: password
+  test:
+    method: GET
+    path: /
+  protected:
+    method: GET
+    path: /protected

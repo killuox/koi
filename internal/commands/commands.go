@@ -10,16 +10,19 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/go-playground/validator/v10"
 	"github.com/killuox/koi/internal/api"
 	"github.com/killuox/koi/internal/config"
 	"github.com/killuox/koi/internal/output"
 	"github.com/killuox/koi/internal/shared"
+	"github.com/killuox/koi/internal/variables"
 )
 
 type Command struct {
-	name     string
-	args     []string
-	endpoint shared.Endpoint
+	name      string
+	args      []string
+	endpoint  shared.Endpoint
+	variables map[string]interface{}
 }
 
 type commands struct {
@@ -31,14 +34,33 @@ func Init() {
 		Flags: commands.getFlags(),
 	}
 
-	if len(os.Args) < 2 {
-		fmt.Print("Not enough arguments provided.\n")
+	vars, err := variables.GetUserVariables()
+	if err != nil {
+		fmt.Print("Error while getting user variables")
 		os.Exit(1)
 	}
-	cfg, err := config.Read()
+
+	cfg, err := config.Read(vars)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
+	}
+
+	if err := config.Validate(cfg); err != nil {
+		if ve, ok := err.(validator.ValidationErrors); ok {
+			fmt.Println("❌ Invalid koi.config.yaml:")
+			for _, e := range ve {
+				fmt.Printf("  - %s: %s\n", e.Namespace(), config.CreateValidatorMessage(e))
+			}
+		} else {
+			fmt.Printf("❌ Config error: %s\n", err)
+		}
+		os.Exit(1)
+	}
+
+	if len(os.Args) < 2 {
+		commands.printHelp(cfg)
+		return
 	}
 
 	state.Cfg = cfg
@@ -52,9 +74,10 @@ func Init() {
 	}
 
 	cmd := Command{
-		name:     cName,
-		args:     args,
-		endpoint: ep,
+		name:      cName,
+		args:      args,
+		endpoint:  ep,
+		variables: vars,
 	}
 
 	err = commands.run(state, cmd)
@@ -181,6 +204,26 @@ func (cmd *commands) getFlags() map[string]any {
 	}
 
 	return flagsMap
+}
+
+func (cmd *commands) printHelp(cfg shared.Config) {
+	fmt.Println("koi - API Testing CLI")
+	fmt.Println()
+	fmt.Println("Usage:")
+	fmt.Println("  koi <endpoint> [options]")
+	fmt.Println()
+	fmt.Println("Available Endpoints:")
+
+	for name, ep := range cfg.Endpoints {
+		fmt.Printf("  %-12s %s %s\n", name, ep.Method, ep.Path)
+	}
+
+	fmt.Println()
+	fmt.Println("Examples:")
+	fmt.Println("  koi login --email=user@example.com --password=secret")
+	fmt.Println("  koi health")
+	fmt.Println()
+	fmt.Println("Use \"koi help <endpoint>\" for more information about an endpoint.")
 }
 
 // parseValue detects bool, int, float, or string

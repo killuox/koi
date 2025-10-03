@@ -1,17 +1,16 @@
-- Handle Authorization headers
-- Add help output when empty args
-- Try to deploy + download
-- Make a documentation website + branding + logo
+- Generate a read me file
+- Try to deploy + download(goreleaser + node wrapper + homebrew + scoop + go)
 
 IMPROVEMENTS
 - Refactoring(try to get rid of the shared.go)
 - Remove all any(s) and find more robust solutions
-- Improve all error messages
-- Make random values when no rules provided
-- Improve Parameters struct depending on mode
+- Improve all error messages, make them more user friendly
+- Generate random values when no rules provided
+- Improve Parameters struct depending on mode - ??
 - Fix loader still showing in the terminal after
 
 EXTRA FEATURES
-- Add tags to display headers or other informations
+- Add tags to provide headers or other informations
 - More rules?
 
+https://www.youtube.com/supported_browsers?next_url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fsi%3DDCIE3ef05eyyFyvT&v=TOzEnwl7LkA&feature=youtu.be
