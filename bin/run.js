@@ -5,9 +5,9 @@ const path = require("path");
 const platform = process.platform;
 let binary;
 
-if (platform === "win32") binary = "koi.exe";
-else if (platform === "darwin") binary = "koi-macos";
-else binary = "koi-linux";
+if (platform === "win32") binary = "koi_windows_amd64_v1";
+else if (platform === "darwin") binary = "koi_darwin_am ";
+else binary = "koi_linux_amd64_v1";
 
 const binaryPath = path.join(__dirname, binary);
 
