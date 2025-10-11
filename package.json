@@ -1,13 +1,11 @@
 {
-  "name": "koi-cli",
-  "version": "0.0.2",
+  "name": "koi-api",
+  "version": "0.0.1",
   "description": "A fast API testing CLI built in Go",
   "bin": {
     "koi": "./bin/run.js"
   },
-  "scripts": {
-    "postinstall": "node install.js"
-  },
+  "scripts": {},
   "author": "Antonin Arsenault",
   "license": "MIT",
   "repository": {
