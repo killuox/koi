@@ -1,6 +1,6 @@
 {
   "name": "koi-api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A fast API testing CLI built in Go",
   "bin": {
     "koi": "./bin/run.js"
