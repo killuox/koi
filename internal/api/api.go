@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/killuox/koi/internal/config"
 	"github.com/killuox/koi/internal/shared"
 	"github.com/killuox/koi/internal/utils"
 	"github.com/killuox/koi/internal/variables"
@@ -24,55 +26,21 @@ type Result struct {
 	Duration time.Duration
 }
 
-func Call(e shared.Endpoint, s *shared.State) (r Result, err error) {
-	switch e.Method {
-	case "GET":
-		return Get(e, s)
-	case "POST":
-		return Post(e, s)
-	case "PUT", "PATCH":
-		return Update(e, s)
-	case "DELETE":
-		return Delete(e, s)
-	default:
-		return Result{}, fmt.Errorf("unsupported method: %s", e.Method)
+type UrlConfig struct {
+	Url string
+}
+
+var validMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+
+func Call(e config.Endpoint, s *shared.State) (r Result, err error) {
+	if !slices.Contains(validMethods, e.Method) {
+		return Result{}, fmt.Errorf("invalid method: %s", e.Method)
+	} else {
+		return doRequest(e, s)
 	}
 }
 
-// Utilities
-func configureUrl(e shared.Endpoint, s *shared.State) string {
-	path := e.Path
-	var queryCount int
-	var re = regexp.MustCompile(`\{[^}]+\}`) // Check if {anything}
-	if re.MatchString(path) {
-		// Check if we need to replace a dynamic path parameters
-		for k, p := range e.Parameters {
-			val, err := p.GetValue(s, k, e)
-			if err != nil && p.Required {
-				fmt.Printf("%s\n", err)
-				os.Exit(1)
-			}
-			switch p.In {
-			case "path":
-				path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", val))
-			case "query":
-				sep := "?"
-				if queryCount > 0 {
-					sep = "&"
-				}
-				path += fmt.Sprintf("%s%s=%s", sep, k, val)
-			}
-		}
-	}
-	return s.Cfg.API.BaseURL + path
-}
-
-func Get(e shared.Endpoint, s *shared.State) (Result, error)    { return doRequest(e, s) }
-func Post(e shared.Endpoint, s *shared.State) (Result, error)   { return doRequest(e, s) }
-func Update(e shared.Endpoint, s *shared.State) (Result, error) { return doRequest(e, s) }
-func Delete(e shared.Endpoint, s *shared.State) (Result, error) { return doRequest(e, s) }
-
-func doRequest(e shared.Endpoint, s *shared.State) (Result, error) {
+func doRequest(e config.Endpoint, s *shared.State) (Result, error) {
 	url := configureUrl(e, s)
 
 	// Build payload only for methods that can have a body
@@ -80,7 +48,7 @@ func doRequest(e shared.Endpoint, s *shared.State) (Result, error) {
 	if e.Method == http.MethodPost || e.Method == http.MethodPut || e.Method == http.MethodPatch {
 		payload := map[string]any{}
 		for k, p := range e.Parameters {
-			val, err := p.GetValue(s, k, e)
+			val, err := p.GetValue(s.Flags, k, e)
 			if err != nil && p.Required {
 				fmt.Printf("%s\n", err)
 				os.Exit(1)
@@ -143,4 +111,31 @@ func doRequest(e shared.Endpoint, s *shared.State) (Result, error) {
 		Status: resp.StatusCode,
 		Method: e.Method,
 	}, nil
+}
+
+func configureUrl(e config.Endpoint, s *shared.State) string {
+	path := e.Path
+	var queryCount int
+	var re = regexp.MustCompile(`\{[^}]+\}`) // Check if {anything}
+	if re.MatchString(path) {
+		// Check if we need to replace a dynamic path parameters
+		for k, p := range e.Parameters {
+			val, err := p.GetValue(s.Flags, k, e)
+			if err != nil && p.Required {
+				fmt.Printf("%s\n", err)
+				os.Exit(1)
+			}
+			switch p.In {
+			case "path":
+				path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", k), fmt.Sprintf("%v", val))
+			case "query":
+				sep := "?"
+				if queryCount > 0 {
+					sep = "&"
+				}
+				path += fmt.Sprintf("%s%s=%s", sep, k, val)
+			}
+		}
+	}
+	return s.Cfg.API.BaseURL + path
 }

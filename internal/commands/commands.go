@@ -21,7 +21,7 @@ import (
 type Command struct {
 	name      string
 	args      []string
-	endpoint  shared.Endpoint
+	endpoint  config.Endpoint
 	variables map[string]interface{}
 }
 
@@ -206,7 +206,7 @@ func (cmd *commands) getFlags() map[string]any {
 	return flagsMap
 }
 
-func (cmd *commands) printHelp(cfg shared.Config) {
+func (cmd *commands) printHelp(cfg config.Config) {
 	fmt.Println("koi - API Testing CLI")
 	fmt.Println()
 	fmt.Println("Usage:")

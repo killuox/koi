@@ -1,0 +1,5 @@
+Procedures for releasing a new version on npm:
+    1. Build the project: goreleaser build --snapshot --clean
+    2. Commit the changes
+    3. npm version patch
+    4. npm publish
