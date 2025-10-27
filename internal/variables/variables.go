@@ -44,7 +44,7 @@ func SetUserVariable(key string, val any) error {
 	var vars map[string]any
 	if len(data) > 0 {
 		if err := json.Unmarshal(data, &vars); err != nil {
-			return fmt.Errorf("error unmarshalling file: %w", err)
+			return fmt.Errorf("error unmarshaling file: %w", err)
 		}
 	} else {
 		vars = make(map[string]any)

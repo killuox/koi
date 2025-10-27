@@ -1,6 +1,5 @@
 IMPROVEMENTS
 - Improve the code in general (SOLID)
-- Refactoring(try to get rid of the shared.go)
 - Remove all any(s) and find more robust solutions
 - Improve all error messages, make them more user friendly
 - Generate random values when no rules provided

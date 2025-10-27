@@ -12,8 +12,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var validFakerKeys = []string{"full_name", "first_name", "last_name", "email", "password", "company", "phone", "lorem_ipsum", "number", "image", "sentence", "paragraph"}
-
 type Config struct {
 	API       API                 `yaml:"api" validate:"required"`
 	Endpoints map[string]Endpoint `yaml:"endpoints" validate:"required,dive"`
@@ -62,6 +60,55 @@ type Rules struct {
 	Max int `yaml:"max"`
 }
 
+// ENV
+type EnvValueGetter interface {
+	Get(key string, defaultVal any) (any, error)
+}
+
+type EnvStringParam struct{}
+type EnvIntParam struct{}
+type EnvBoolParam struct{}
+
+var envParamTypeRegistry = map[string]EnvValueGetter{
+	"string": EnvStringParam{},
+	"int":    EnvIntParam{},
+	"bool":   EnvBoolParam{},
+}
+
+// FAKER
+type FakerValueGetter interface {
+	Get(p Parameter) (any, error)
+}
+
+type FakerFullNameParam struct{}
+type FakerFirstNameParam struct{}
+type FakerLastNameParam struct{}
+type FakerEmailParam struct{}
+type FakerPasswordParam struct{}
+type FakerCompanyParam struct{}
+type FakerPhoneParam struct{}
+type FakerLoremIpsumParam struct{}
+type FakerNumberParam struct{}
+type FakerImageParam struct{}
+type FakerSentenceParam struct{}
+type FakerParagraphParam struct{}
+
+var fakerParamTypeRegistry = map[string]FakerValueGetter{
+	"full_name":   FakerFullNameParam{},
+	"first_name":  FakerFirstNameParam{},
+	"last_name":   FakerLastNameParam{},
+	"email":       FakerEmailParam{},
+	"password":    FakerPasswordParam{},
+	"company":     FakerCompanyParam{},
+	"phone":       FakerPhoneParam{},
+	"lorem_ipsum": FakerLoremIpsumParam{},
+	"number":      FakerNumberParam{},
+	"image":       FakerImageParam{},
+	"sentence":    FakerSentenceParam{},
+	"paragraph":   FakerParagraphParam{},
+}
+
+// Base functions
 func Read(vars map[string]any) (cfg Config, err error) {
 	yamlFile, err := os.ReadFile("koi.config.yaml")
 
@@ -155,64 +202,86 @@ func (p Parameter) GetValue(flags map[string]any, key string, e Endpoint) (any, 
 	return nil, fmt.Errorf("no value provided for parameter: %s", key)
 }
 
-func (p Parameter) GetEnvValue(key string, defaultVal any) (any, error) {
-	switch p.Type {
-	case "string":
-		v, exists := env.GetString(key, "")
-		if exists {
-			return v, nil
-		}
-	case "int":
-		v, exists := env.GetInt(key, 0)
-		if exists {
-			return v, nil
-		}
-	case "bool":
-		v, exists := env.GetBool(key, false)
-		if exists {
-			return v, nil
-		}
-	default:
-		return nil, fmt.Errorf("wrong parameter type for: %s", key)
+// ENV
+func (EnvStringParam) Get(key string, defaultVal any) (any, error) {
+	v, exists := env.GetString(key, "")
+	if exists {
+		return v, nil
 	}
+
 	return defaultVal, nil
 }
 
-func (p Parameter) GetFakerValue(key string) (any, error) {
-	var isValid bool
-	for _, fk := range validFakerKeys {
-		if fk == key {
-			isValid = true
-		}
-	}
-	if !isValid {
-		return nil, fmt.Errorf("invalid key for faker mode make sure to provide a valid one")
+func (EnvIntParam) Get(key string, defaultVal any) (any, error) {
+	v, exists := env.GetInt(key, 0)
+	if exists {
+		return v, nil
 	}
 
-	switch key {
-	case "first_name":
-		return gofakeit.FirstName(), nil
-	case "last_name":
-		return gofakeit.LastName(), nil
-	case "full_name":
-		return gofakeit.Name(), nil
-	case "phone":
-		return gofakeit.Phone(), nil
-	case "email":
-		return gofakeit.Email(), nil
-	case "password":
-		return gofakeit.Password(true, true, true, true, false, 12), nil // TODO: make it dynamic via rules
-	case "company":
-		return gofakeit.Company(), nil
-	case "image":
-		return gofakeit.Image(p.Rules.Width, p.Rules.Height), nil
-	case "number":
-		return gofakeit.Number(p.Rules.Min, p.Rules.Max), nil
-	case "sentence":
-		return gofakeit.Sentence(p.Rules.WordCount), nil
-	case "paragraph":
-		return gofakeit.Paragraph(p.Rules.ParagraphCount, p.Rules.SentenceCount, p.Rules.WordCount, "\n"), nil
-	default:
-		return nil, fmt.Errorf("key %s does not exist in mode faker", key)
+	return defaultVal, nil
+}
+
+func (EnvBoolParam) Get(key string, defaultVal any) (any, error) {
+	v, exists := env.GetBool(key, false)
+	if exists {
+		return v, nil
 	}
+
+	return defaultVal, nil
+}
+
+func (p Parameter) GetEnvValue(key string, defaultVal any) (any, error) {
+	getter, ok := envParamTypeRegistry[p.Type]
+	if !ok {
+		return nil, fmt.Errorf("unsupported parameter type: %s", p.Type)
+	}
+
+	return getter.Get(key, defaultVal)
+}
+
+// FAKER
+func (FakerFullNameParam) Get(p Parameter) (any, error) {
+	return gofakeit.Name(), nil
+}
+func (FakerFirstNameParam) Get(p Parameter) (any, error) {
+	return gofakeit.FirstName(), nil
+}
+func (FakerLastNameParam) Get(p Parameter) (any, error) {
+	return gofakeit.LastName(), nil
+}
+func (FakerEmailParam) Get(p Parameter) (any, error) {
+	return gofakeit.Email(), nil
+}
+func (FakerPasswordParam) Get(p Parameter) (any, error) {
+	return gofakeit.Password(true, true, true, true, false, 12), nil // TODO: make it dynamic via rules
+}
+func (FakerCompanyParam) Get(p Parameter) (any, error) {
+	return gofakeit.Company(), nil
+}
+func (FakerPhoneParam) Get(p Parameter) (any, error) {
+	return gofakeit.Phone(), nil
+}
+func (FakerLoremIpsumParam) Get(p Parameter) (any, error) {
+	return gofakeit.LoremIpsumWord(), nil
+}
+func (FakerNumberParam) Get(p Parameter) (any, error) {
+	return gofakeit.Number(p.Rules.Min, p.Rules.Max), nil
+}
+func (FakerImageParam) Get(p Parameter) (any, error) {
+	return gofakeit.Image(p.Rules.Width, p.Rules.Height), nil
+}
+func (FakerSentenceParam) Get(p Parameter) (any, error) {
+	return gofakeit.Sentence(p.Rules.WordCount), nil
+}
+func (FakerParagraphParam) Get(p Parameter) (any, error) {
+	return gofakeit.Paragraph(p.Rules.ParagraphCount, p.Rules.SentenceCount, p.Rules.WordCount, "\n"), nil
+}
+
+func (p Parameter) GetFakerValue(key string) (any, error) {
+	getter, ok := fakerParamTypeRegistry[key]
+	if !ok {
+		return nil, fmt.Errorf("unsupported faker param")
+	}
+
+	return getter.Get(p)
 }

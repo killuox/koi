@@ -36,26 +36,18 @@ func Call(e config.Endpoint, s *shared.State) (r Result, err error) {
 	if !slices.Contains(validMethods, e.Method) {
 		return Result{}, fmt.Errorf("invalid method: %s", e.Method)
 	} else {
-		return doRequest(e, s)
+		url := configureUrl(e, s)
+		return doRequest(url, e, s)
 	}
 }
 
-func doRequest(e config.Endpoint, s *shared.State) (Result, error) {
-	url := configureUrl(e, s)
-
-	// Build payload only for methods that can have a body
+func doRequest(url string, e config.Endpoint, s *shared.State) (Result, error) {
 	var body io.Reader
+
+	// Get parameters values for payload
 	if e.Method == http.MethodPost || e.Method == http.MethodPut || e.Method == http.MethodPatch {
 		payload := map[string]any{}
-		for k, p := range e.Parameters {
-			val, err := p.GetValue(s.Flags, k, e)
-			if err != nil && p.Required {
-				fmt.Printf("%s\n", err)
-				os.Exit(1)
-			}
-			payload[k] = val
-		}
-
+		setPayload(e, payload, s)
 		jsonData, err := json.Marshal(payload)
 		if err != nil {
 			return Result{}, fmt.Errorf("error encoding JSON: %w", err)
@@ -111,6 +103,17 @@ func doRequest(e config.Endpoint, s *shared.State) (Result, error) {
 		Status: resp.StatusCode,
 		Method: e.Method,
 	}, nil
+}
+
+func setPayload(e config.Endpoint, p map[string]any, s *shared.State) {
+	for k, param := range e.Parameters {
+		val, err := param.GetValue(s.Flags, k, e)
+		if err != nil && param.Required {
+			fmt.Printf("%s\n", err)
+			os.Exit(1)
+		}
+		p[k] = val
+	}
 }
 
 func configureUrl(e config.Endpoint, s *shared.State) string {

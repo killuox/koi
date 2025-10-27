@@ -25,13 +25,12 @@ type Command struct {
 	variables map[string]interface{}
 }
 
-type commands struct {
-}
+type Cli struct{}
 
 func Init() {
-	commands := &commands{}
+	cli := &Cli{}
 	state := &shared.State{
-		Flags: commands.getFlags(),
+		Flags: cli.getFlags(),
 	}
 
 	vars, err := variables.GetUserVariables()
@@ -59,7 +58,7 @@ func Init() {
 	}
 
 	if len(os.Args) < 2 {
-		commands.printHelp(cfg)
+		cli.printHelp(cfg)
 		return
 	}
 
@@ -80,7 +79,7 @@ func Init() {
 		variables: vars,
 	}
 
-	err = commands.run(state, cmd)
+	err = cli.run(state, cmd)
 	if err != nil {
 		fmt.Printf("Error while running the command: %s\n", err)
 		os.Exit(1)
@@ -88,7 +87,7 @@ func Init() {
 	os.Exit(0)
 }
 
-func (c *commands) runWithLoader(
+func (c *Cli) runWithLoader(
 	f func() (api.Result, error),
 ) (api.Result, error) {
 	var loaderProgram *tea.Program
@@ -111,7 +110,7 @@ func (c *commands) runWithLoader(
 	return result, err
 }
 
-func (c *commands) processAPIResult(
+func (c *Cli) processAPIResult(
 	result api.Result,
 ) {
 	var data interface{}
@@ -135,7 +134,7 @@ func (c *commands) processAPIResult(
 	}
 }
 
-func (c *commands) run(s *shared.State, cmd Command) error {
+func (c *Cli) run(s *shared.State, cmd Command) error {
 	callFunc := func() (api.Result, error) {
 		startTime := time.Now()
 		result, err := api.Call(cmd.endpoint, s)
@@ -161,7 +160,7 @@ func (c *commands) run(s *shared.State, cmd Command) error {
 	return nil
 }
 
-func (cmd *commands) getFlags() map[string]any {
+func (cmd *Cli) getFlags() map[string]any {
 	flagsMap := make(map[string]any)
 
 	args := os.Args[1:]
@@ -206,7 +205,7 @@ func (cmd *commands) getFlags() map[string]any {
 	return flagsMap
 }
 
-func (cmd *commands) printHelp(cfg config.Config) {
+func (cmd *Cli) printHelp(cfg config.Config) {
 	fmt.Println("koi - API Testing CLI")
 	fmt.Println()
 	fmt.Println("Usage:")
@@ -226,7 +225,6 @@ func (cmd *commands) printHelp(cfg config.Config) {
 	fmt.Println("Use \"koi help <endpoint>\" for more information about an endpoint.")
 }
 
-// parseValue detects bool, int, float, or string
 func parseValue(val string) any {
 	// Try int
 	if i, err := strconv.Atoi(val); err == nil {
