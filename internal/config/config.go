@@ -108,9 +108,12 @@ var fakerParamTypeRegistry = map[string]FakerValueGetter{
 	"paragraph":   FakerParagraphParam{},
 }
 
-// Base functions
-func Read(vars map[string]any) (cfg Config, err error) {
+// Config
+func (c *Config) Init(vars map[string]any) (err error) {
 	yamlFile, err := os.ReadFile("koi.config.yaml")
+	if err != nil {
+		return fmt.Errorf("error reading koi.config.yaml file")
+	}
 
 	// Regex to find {{variable}}
 	re := regexp.MustCompile(`\{\{(\w+)\}\}`)
@@ -132,25 +135,20 @@ func Read(vars map[string]any) (cfg Config, err error) {
 	// Convert back to byte
 	yamlByte := []byte(newYamlString)
 
+	err = yaml.Unmarshal(yamlByte, c)
 	if err != nil {
-		return Config{}, fmt.Errorf("error reading or missing koi.config.yaml file")
-	}
-	var config Config
-
-	err = yaml.Unmarshal(yamlByte, &config)
-	if err != nil {
-		return config, fmt.Errorf("error unmarshalling config file")
+		return fmt.Errorf("error unmarshaling config file: %w", err)
 	}
 
-	return config, nil
+	return nil
 }
 
-func Validate(cfg Config) error {
+func (c *Config) Validate(cfg Config) error {
 	validate := validator.New()
 	return validate.Struct(cfg)
 }
 
-func CreateValidatorMessage(e validator.FieldError) string {
+func (c *Config) CreateValidatorMessage(e validator.FieldError) string {
 	switch e.Tag() {
 	case "required":
 		return "is required but missing"
@@ -165,6 +163,7 @@ func CreateValidatorMessage(e validator.FieldError) string {
 	}
 }
 
+// Parameter
 func (p Parameter) GetValue(flags map[string]any, key string, e Endpoint) (any, error) {
 	// Get the default value
 	defaultVal, hasDefaultValue := e.Defaults[key]
@@ -280,7 +279,7 @@ func (FakerParagraphParam) Get(p Parameter) (any, error) {
 func (p Parameter) GetFakerValue(key string) (any, error) {
 	getter, ok := fakerParamTypeRegistry[key]
 	if !ok {
-		return nil, fmt.Errorf("unsupported faker param")
+		return nil, fmt.Errorf("%s is not a supported faker param", key)
 	}
 
 	return getter.Get(p)

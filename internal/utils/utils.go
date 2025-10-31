@@ -14,7 +14,6 @@ func DeepGet(m map[string]any, path string) (any, bool) {
 		case map[string]any:
 			cur = v[p]
 		case []any:
-			// optional: support array access like "items.0.name"
 			idx, err := strconv.Atoi(p)
 			if err != nil || idx < 0 || idx >= len(v) {
 				return nil, false

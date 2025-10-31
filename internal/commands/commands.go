@@ -29,9 +29,6 @@ type Cli struct{}
 
 func Init() {
 	cli := &Cli{}
-	state := &shared.State{
-		Flags: cli.getFlags(),
-	}
 
 	vars, err := variables.GetUserVariables()
 	if err != nil {
@@ -39,17 +36,19 @@ func Init() {
 		os.Exit(1)
 	}
 
-	cfg, err := config.Read(vars)
+	cfg := config.Config{}
+
+	err = cfg.Init(vars)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
 	}
 
-	if err := config.Validate(cfg); err != nil {
+	if err := cfg.Validate(cfg); err != nil {
 		if ve, ok := err.(validator.ValidationErrors); ok {
 			fmt.Println("❌ Invalid koi.config.yaml:")
 			for _, e := range ve {
-				fmt.Printf("  - %s: %s\n", e.Namespace(), config.CreateValidatorMessage(e))
+				fmt.Printf("  - %s: %s\n", e.Namespace(), cfg.CreateValidatorMessage(e))
 			}
 		} else {
 			fmt.Printf("❌ Config error: %s\n", err)
@@ -62,7 +61,12 @@ func Init() {
 		return
 	}
 
-	state.Cfg = cfg
+	state := &shared.State{
+		Flags:     cli.getFlags(),
+		Cfg:       cfg,
+		Variables: vars,
+	}
+
 	cName := os.Args[1]
 	args := os.Args[2:]
 

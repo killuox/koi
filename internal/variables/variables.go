@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func GetUserVariables() (map[string]interface{}, error) {
+func GetUserVariables() (map[string]any, error) {
 	// Read the file
 	data, err := getFile()
 	if err != nil {
