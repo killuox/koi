@@ -1,1 +1,1 @@
-{"project_name":"koi","tag":"v0.0.0","previous_tag":"","version":"0.0.0-SNAPSHOT-1e4a360","commit":"1e4a36088d18b2bc0ce1d34a12199bcea5405047","date":"2025-10-10T22:00:11.1390948-04:00","runtime":{"goos":"windows","goarch":"amd64"}}
+{"project_name":"koi","tag":"v0.0.11","previous_tag":"v0.0.10","version":"0.0.11-SNAPSHOT-2390b9b","commit":"2390b9b2c85904f0cd44c4c9aeb325fc578d8167","date":"2025-10-30T22:48:15.9877284-04:00","runtime":{"goos":"windows","goarch":"amd64"}}
