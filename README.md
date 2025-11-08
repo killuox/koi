@@ -1,4 +1,4 @@
-i# Koi 🐟
+Koi 🐟
 
 A beautiful and powerful CLI tool for API testing with a modern terminal interface. Koi allows you to define API endpoints in a configuration file and test them with ease, featuring dynamic parameter generation, variable management, and a sleek terminal UI.
 
@@ -10,7 +10,7 @@ A beautiful and powerful CLI tool for API testing with a modern terminal interfa
 - **💾 Variable Management** - Store and reuse response data across requests
 - **🎯 Multiple HTTP Methods** - Full support for GET, POST, PUT, PATCH, and DELETE requests
 - **📊 Rich Response Display** - Pretty-printed JSON responses with status codes and timing
-- **🔧 Flexible Configuration** - Path parameters, query strings, and request bodies
+- **🔧 Flexible Configuration** - Path parameters, query strings, environment variables and request bodies
 - **🎲 Fake Data Generation** - Built-in support for generating realistic test data
 
 ## 🚀 Installation
@@ -23,10 +23,10 @@ cd koi
 go build -o koi main.go
 ```
 
-### Using Go Install
+### Using NPM Install(go installer coming soon)
 
 ```bash
-go install github.com/killuox/koi@latest
+npm install -g koi-api
 ```
 
 ## 📖 Quick Start
